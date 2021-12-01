@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="http://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
+<!--    <script src="main.js"></script>-->
+    <style>
+        body{
+            font-family: 'OpenDyslexic', sans-serif;
+            font-weight: bold;
+            color: #fdbb62;
+            background-color: #211301;
+        }
+        form {
+            position: sticky;
+            top: 0;
+            background-color: #211301;
+        }
+        thead {
+            font-weight: bolder;
+            text-decoration: underline;
+            font-size: 110%;
+        }
+
+        th {
+            position: sticky;
+            top: 20px;
+            background-color: #211301;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        td {
+            margin-top: -15px;
+        }
+        tr:hover {
+            color: #ffffff;
+            background-color: #5e3908;
+        }
+        .number-right{
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <form action="/index">
+        <label for="from">From # </label>
+        <input type="number" id="from" name="from" value="{{ from }}" min="1" max="100000" step="1">
+        <label for="to">To # </label>
+        <input type="number" id="to" name="to" value="{{ to }}" min="1" max="100000" step="1">
+        <label for="price-threshold">Price < </label>
+        <input type="number" id="price-threshold" name="price-threshold" value="{{ threshold }}" min="0.0000001" max="1000000" step="0.0000001">
+        <input type="submit" value="Go" name="submit">
+        <input type="submit" value="^ Vol" name="incr-vol">
+        <input type="submit" value="v Vol" name="decr-vol">
+        <input type="submit" value="^ price" name="incr-price">
+        <input type="submit" value="v price" name="decr-price">
+    </form>
+
+    <table>
+        <thead>
+            <tr >
+                <th>#</th>
+                <th>Name</th>
+                <th>Symbol</th>
+                <th>Price</th>
+                <th>Volume 24h</th>
+                <th>Date Added</th>
+            </tr>
+        </thead>
+        {% set i=0 %}
+        {% for coinDatum in coinData.CoinData %}
+
+
+            <tr>
+                <td>{{ i }}</td>
+                <td>{{ coinDatum.Name }}</td>
+                <td>{{ coinDatum.Symbol }}</td>
+                <td class="number-right">{{ coinDatum.Properties.Dollar.Price|number_format }}</td>
+                <td class="number-right">{{ coinDatum.Properties.Dollar.Volume24|number_format }}</td>
+                <td>{{ coinDatum.DateAdded }}</td>
+            </tr>
+            {% set i=i+1 %}
+
+        {% endfor %}
+    </table>
+
+</body>
+</html>
