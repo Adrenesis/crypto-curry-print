@@ -183,7 +183,7 @@ func main() {
 	env.Filters["number_format"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
 		v := stick.CoerceNumber(val)
 		// Do some formatting.
-		return fmt.Sprintf("%.7f", v)
+		return fmt.Sprintf("%.10f", v)
 	}
 	env.Filters["number_format_vol"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
 		v := stick.CoerceNumber(val)
