@@ -28,6 +28,9 @@
             padding-top: 10px;
             padding-bottom: 10px;
         }
+        a {
+            color:limegreen;
+        }
         td {
             margin-top: -15px;
         }
@@ -88,6 +91,18 @@
                 <td class="number-right">{{ coinDatum.Properties.Dollar.Price|number_format }}</td>
                 <td class="number-right">{{ coinDatum.Properties.Dollar.Volume24|number_format_vol }}</td>
                 <td>{{ coinDatum.DateAdded }}</td>
+                {% if coinDatum.BscScan != "<nil>" %}
+                    <td><a href="{{ coinDatum.BscScan }}">BSC</a></td>
+                    <td><a href="https://pancakeswap.finance/swap?inputCurrency=0x55d398326f99059ff775485246999027b3197955&outputCurrency={{ coinDatum.BscContract }}&exactField=input&exactAmount=1.00">BUY (BSC)</a></td>
+                {% endif %}
+                {% if coinDatum.EthScan != "<nil>" %}
+                    <td><a href="{{ coinDatum.EthScan }}">ETH</a></td>
+                {% endif %}
+                {% if coinDatum.XrpScan != "<nil>" %}
+                    <td><a href="{{ coinDatum.XrpScan }}">XRP</a></td>
+                {% endif %}
+
+
             </tr>
             {% set i=i+1 %}
 

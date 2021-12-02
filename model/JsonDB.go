@@ -65,9 +65,9 @@ func ReadMapJsons() CoinDataMap {
 	for i := 0; i < 16; i++ {
 		coinDataMap1 := ReadMapJson("MapData" + fmt.Sprintf("%d", i) + ".json")
 		//fmt.Println(fmt.Sprintf("%v", coinDataMap1))
-		var elements [][]byte
+		//var elements [][]byte
 		for _, element := range coinDataMap1.CoinDataMap {
-			fmt.Println("=>", "Element:", element)
+			//fmt.Println("=>", "Element:", element)
 			//for key0, element0 := range element {
 			//	fmt.Println("Key:", key0, "=>", "Element:", element0)
 			//}
@@ -81,7 +81,7 @@ func ReadMapJsons() CoinDataMap {
 			}
 			coinDataMap.CoinDataMap = append(coinDataMap.CoinDataMap, coinDatumMap)
 		}
-		fmt.Println(fmt.Sprintf("%v", elements))
+		//fmt.Println(fmt.Sprintf("%v", elements))
 
 		//for j := 0; j < len(coinDataMap1.CoinDataMap); j++ {
 		//	coinDataMap.CoinDataMap = append(coinDataMap.CoinDataMap, coinDataMap1.CoinDataMap[j])
