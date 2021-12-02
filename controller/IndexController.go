@@ -48,8 +48,10 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	refreshAll := r.URL.Query()["refresh_all"]
 	confirm := r.URL.Query()["confirm"]
 	fmt.Println("confirm", confirm)
+	fmt.Println("refresh", refreshAll)
 	var coinData Model.CoinData
 	var coinData1 Model.CoinData
+	fmt.Println((len(refreshAll) > 0) && (len(confirm) > 0))
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
 			Model.UpdateJsons(false)
@@ -59,17 +61,19 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			}
 			Model.WriteCryptosSQLDB(coinData)
-		} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
-			if confirm[0] == "on" {
-				Model.UpdateJsons(true)
-				coinData = Model.ReadJson("cmcdb0.json")
-				coinData1 = Model.ReadJson("cmcdb1.json")
-				for i := 0; i < len(coinData1.CoinData); i++ {
-					coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
-				}
-			}
-			Model.WriteCryptosSQLDB(coinData)
 		}
+	} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
+
+		fmt.Println("getting all cryptocurrencies...")
+		if confirm[0] == "on" {
+			Model.UpdateJsons(true)
+			coinData = Model.ReadJson("cmcdb0.json")
+			coinData1 = Model.ReadJson("cmcdb1.json")
+			for i := 0; i < len(coinData1.CoinData); i++ {
+				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+			}
+		}
+		Model.WriteCryptosSQLDB(coinData)
 	} else {
 
 		//coinData = Model.ReadJson("cmcdb0.json")

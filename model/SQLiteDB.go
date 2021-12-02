@@ -14,20 +14,14 @@ func ReadCryptosSQLDB() CoinData {
 		log.Fatal(err)
 	}
 	CreateTable()
-	rows, err := db.Query("select name, symbol, price, vol24, date_added from cryptos order by date_added desc;")
+	rows, err := db.Query("select id, name, symbol, price, vol24, date_added from cryptos order by date_added desc;")
 	if err != nil {
 		log.Fatal(err)
 	}
 	var coinData CoinData
-	rows.Next()
-	var coinDatum CoinDatum
-	if err = rows.Scan(&coinDatum.Name, &coinDatum.Symbol, &coinDatum.Properties.Dollar.Price, &coinDatum.Properties.Dollar.Volume24, &coinDatum.DateAdded); err != nil {
-		log.Fatal(err)
-	}
-	coinData.CoinData = append(coinData.CoinData, coinDatum)
 	for rows.Next() {
 		var coinDatum CoinDatum
-		if err = rows.Scan(&coinDatum.Name, &coinDatum.Symbol, &coinDatum.Properties.Dollar.Price, &coinDatum.Properties.Dollar.Volume24, &coinDatum.DateAdded); err != nil {
+		if err = rows.Scan(&coinDatum.Id, &coinDatum.Name, &coinDatum.Symbol, &coinDatum.Properties.Dollar.Price, &coinDatum.Properties.Dollar.Volume24, &coinDatum.DateAdded); err != nil {
 			log.Fatal(err)
 		}
 		coinData.CoinData = append(coinData.CoinData, coinDatum)
@@ -60,7 +54,7 @@ func CreateTable() {
 
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
-create table if not exists cryptos(name VARCHAR, symbol VARCHAR, price REAL, vol24 REAL, date_added TEXT, PRIMARY KEY(name, symbol, date_added));
+create table if not exists cryptos(id INTEGER, name VARCHAR, symbol VARCHAR, price REAL, vol24 REAL, date_added TEXT, PRIMARY KEY(id));
 	`); err != nil {
 		log.Fatal(err)
 	}
@@ -82,7 +76,8 @@ func WriteCryptosSQLDB(coinData CoinData) {
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
 		//	fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) +"', '" +
 		//	coinData.CoinData[i].DateAdded +"');")
-		if _, err = db.Exec("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('" +
+		if _, err = db.Exec("INSERT INTO cryptos (id, name, symbol, price, vol24, date_added) VALUES ('" +
+			fmt.Sprintf("%d", coinData.CoinData[i].Id) + "', '" +
 			strings.Replace(coinData.CoinData[i].Name, "'", "''", -1) + "', '" +
 			strings.Replace(coinData.CoinData[i].Symbol, "'", "''", -1) + "', '" +
 			fmt.Sprintf("%.7f", coinData.CoinData[i].Properties.Dollar.Price) + "', '" +
