@@ -46,6 +46,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	decrPrice := r.URL.Query()["decr-price"]
 	refresh := r.URL.Query()["refresh"]
 	refreshAll := r.URL.Query()["refresh_all"]
+	refreshMap := r.URL.Query()["refresh_map"]
 	confirm := r.URL.Query()["confirm"]
 	fmt.Println("confirm", confirm)
 	fmt.Println("refresh", refreshAll)
@@ -66,7 +67,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("getting all cryptocurrencies...")
 		if confirm[0] == "on" {
-			Model.UpdateJsons(true)
+			//Model.UpdateJsons(true)
 			coinData = Model.ReadJson("cmcdb0.json")
 			coinData1 = Model.ReadJson("cmcdb1.json")
 			for i := 0; i < len(coinData1.CoinData); i++ {
@@ -74,6 +75,20 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		Model.WriteCryptosSQLDB(coinData)
+	} else if (len(refreshMap) > 0) && (len(confirm) > 0) {
+
+		fmt.Println("getting all cryptocurrencies metadata...")
+		if confirm[0] == "on" {
+			//Model.UpdateMapJsons()
+			coinDataMap := Model.ReadMapJsons()
+			Model.WriteCryptosMapSQLDB(coinDataMap)
+			//coinData = Model.ReadJson("cmcdb0.json")
+			//coinData1 = Model.ReadJson("cmcdb1.json")
+			//for i := 0; i < len(coinData1.CoinData); i++ {
+			//	coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+			//}
+		}
+		//Model.WriteCryptosSQLDB(coinData)
 	} else {
 
 		//coinData = Model.ReadJson("cmcdb0.json")

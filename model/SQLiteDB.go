@@ -6,6 +6,7 @@ import (
 	"log"
 	_ "modernc.org/sqlite"
 	"strings"
+	//"time"
 )
 
 func ReadCryptosSQLDB() CoinData {
@@ -14,14 +15,14 @@ func ReadCryptosSQLDB() CoinData {
 		log.Fatal(err)
 	}
 	CreateTable()
-	rows, err := db.Query("select id, name, symbol, price, vol24, date_added from cryptos order by date_added desc;")
+	rows, err := db.Query("select id, name, symbol, price, vol24, date_added, explorer from cryptos order by date_added desc;")
 	if err != nil {
 		log.Fatal(err)
 	}
 	var coinData CoinData
 	for rows.Next() {
 		var coinDatum CoinDatum
-		if err = rows.Scan(&coinDatum.Id, &coinDatum.Name, &coinDatum.Symbol, &coinDatum.Properties.Dollar.Price, &coinDatum.Properties.Dollar.Volume24, &coinDatum.DateAdded); err != nil {
+		if err = rows.Scan(&coinDatum.Id, &coinDatum.Name, &coinDatum.Symbol, &coinDatum.Properties.Dollar.Price, &coinDatum.Properties.Dollar.Volume24, &coinDatum.DateAdded, &coinDatum.Explorers); err != nil {
 			log.Fatal(err)
 		}
 		coinData.CoinData = append(coinData.CoinData, coinDatum)
@@ -54,7 +55,7 @@ func CreateTable() {
 
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
-create table if not exists cryptos(id INTEGER, name VARCHAR, symbol VARCHAR, price REAL, vol24 REAL, date_added TEXT, PRIMARY KEY(id));
+create table if not exists cryptos(id INTEGER, name VARCHAR, symbol VARCHAR, price REAL, vol24 REAL, date_added TEXT, explorer TEXT, PRIMARY KEY(id));
 	`); err != nil {
 		log.Fatal(err)
 	}
@@ -76,18 +77,78 @@ func WriteCryptosSQLDB(coinData CoinData) {
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
 		//	fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) +"', '" +
 		//	coinData.CoinData[i].DateAdded +"');")
-		if _, err = db.Exec("INSERT INTO cryptos (id, name, symbol, price, vol24, date_added) VALUES ('" +
+		if _, err = db.Exec("INSERT INTO cryptos (id, name, symbol, price, vol24, date_added, explorer) VALUES ('" +
 			fmt.Sprintf("%d", coinData.CoinData[i].Id) + "', '" +
 			strings.Replace(coinData.CoinData[i].Name, "'", "''", -1) + "', '" +
 			strings.Replace(coinData.CoinData[i].Symbol, "'", "''", -1) + "', '" +
 			fmt.Sprintf("%.7f", coinData.CoinData[i].Properties.Dollar.Price) + "', '" +
 			fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) + "', '" +
-			coinData.CoinData[i].DateAdded + "');"); err != nil {
+			coinData.CoinData[i].DateAdded + "', '" +
+			"" + "');"); err != nil {
 			s := fmt.Sprintf("%v", err)
 			if !strings.HasSuffix(s, "(1555)") {
 				log.Fatal(err)
 			}
 		}
+	}
+	CloseDB(db)
+
+}
+
+func WriteCryptosMapSQLDB(coinDataMap CoinDataMap) {
+	db, err := sql.Open("sqlite", "./cryptoDB.db")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	CreateTable()
+
+	for i := 0; i < len(coinDataMap.CoinDataMap); i++ {
+		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
+		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
+		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
+		//	fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) +"', '" +
+		//	coinData.CoinData[i].DateAdded +"');")
+		explorer := ""
+		for j := 0; j < len(coinDataMap.CoinDataMap[i].URLs.Explorer); j++ {
+			if explorer == "" {
+				explorer = coinDataMap.CoinDataMap[i].URLs.Explorer[j]
+			} else {
+				explorer += "," + coinDataMap.CoinDataMap[i].URLs.Explorer[j]
+			}
+		}
+		fmt.Println(explorer)
+
+		//args[1] = coinDataMap.CoinDataMap[i].Id
+		//args.Explorer = explorer
+		//args.Id = coinDataMap.CoinDataMap[i].Id
+		updateExplorers, err := db.Prepare("UPDATE cryptos SET explorer = ? WHERE id = ?;")
+		if err != nil {
+			log.Fatal(err)
+
+		}
+
+		tx, err := db.Begin()
+		if err != nil {
+			log.Fatal(err)
+
+		}
+		defer tx.Rollback()
+
+		res, err := updateExplorers.Exec(explorer, fmt.Sprintf("%d", coinDataMap.CoinDataMap[i].Id))
+		if err != nil {
+			log.Fatal(err)
+
+		}
+		err = tx.Commit()
+		//time.Sleep(5000 * time.Millisecond)
+		fmt.Println("Hello!?")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(fmt.Sprintf("%v", res))
 	}
 	CloseDB(db)
 

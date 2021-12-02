@@ -14,6 +14,7 @@ type CoinDatum struct {
 	Symbol     string   `json:"symbol"`
 	DateAdded  string   `json:"date_added"`
 	Properties Property `json:"quote"`
+	Explorers  string
 }
 
 type Property struct {
