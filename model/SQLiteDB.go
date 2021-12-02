@@ -95,12 +95,47 @@ func WriteCryptosSQLDB(coinData CoinData) {
 
 }
 
-func WriteCryptosMapSQLDB(coinDataMap CoinDataMap) {
+func Prepare(query string) (db *sql.DB, tx *sql.Tx, stmt *sql.Stmt) {
 	db, err := sql.Open("sqlite", "./cryptoDB.db")
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
+	stmt, err = db.Prepare("UPDATE cryptos SET explorer = ? WHERE id = ?;")
+	if err != nil {
+		log.Fatal(err)
+
+	}
+
+	tx, err = db.Begin()
+	if err != nil {
+		log.Fatal(err)
+
+	}
+
+	return db, tx, stmt
+}
+
+func Exec(tx *sql.Tx, stmt *sql.Stmt, args ...interface{}) {
+	defer tx.Rollback()
+	_, err := stmt.Exec(args...)
+	if err != nil {
+		log.Fatal(err)
+
+	}
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func writeExplorer(explorer string, id int64) {
+	db, tx, updateExplorers := Prepare("UPDATE cryptos SET explorer = ? WHERE id = ?;")
+	Exec(tx, updateExplorers, explorer, fmt.Sprintf("%d", id))
+	CloseDB(db)
+}
+
+func WriteCryptosMapSQLDB(coinDataMap CoinDataMap) {
 
 	CreateTable()
 
@@ -124,32 +159,8 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap) {
 		//args[1] = coinDataMap.CoinDataMap[i].Id
 		//args.Explorer = explorer
 		//args.Id = coinDataMap.CoinDataMap[i].Id
-		updateExplorers, err := db.Prepare("UPDATE cryptos SET explorer = ? WHERE id = ?;")
-		if err != nil {
-			log.Fatal(err)
-
-		}
-
-		tx, err := db.Begin()
-		if err != nil {
-			log.Fatal(err)
-
-		}
-		defer tx.Rollback()
-
-		res, err := updateExplorers.Exec(explorer, fmt.Sprintf("%d", coinDataMap.CoinDataMap[i].Id))
-		if err != nil {
-			log.Fatal(err)
-
-		}
-		err = tx.Commit()
-		//time.Sleep(5000 * time.Millisecond)
-		fmt.Println("Hello!?")
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(fmt.Sprintf("%v", res))
+		writeExplorer(explorer, coinDataMap.CoinDataMap[i].Id)
+		//fmt.Println(fmt.Sprintf("%v", res))
 	}
-	CloseDB(db)
 
 }
