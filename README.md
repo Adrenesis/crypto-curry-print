@@ -5,6 +5,7 @@ List crypto currencies by last coins listed @ coinmarketcap
 ## Dependencies
 
 `go get -u github.com/tyler-sommer/stick`
+
 `go get modernc.org/sqlite`
 
 ## Building
