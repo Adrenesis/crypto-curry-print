@@ -200,13 +200,18 @@ func main() {
 		incrPrice := r.URL.Query()["incr-price"]
 		decrPrice := r.URL.Query()["decr-price"]
 		refresh := r.URL.Query()["refresh"]
-		if len(refresh) > 0 {
-			updateJsons()
-			coinData = readJson("cmcdb0.json")
-			coinData1 = readJson("cmcdb1.json")
-			for i := 0; i < len(coinData1.CoinData); i++ {
-				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+		confirm := r.URL.Query()["confirm"]
+		fmt.Println("confirm", confirm)
+		if (len(refresh) > 0) && (len(confirm) > 0) {
+			if confirm[0] == "on" {
+				updateJsons()
+				coinData = readJson("cmcdb0.json")
+				coinData1 = readJson("cmcdb1.json")
+				for i := 0; i < len(coinData1.CoinData); i++ {
+					coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+				}
 			}
+
 		}
 		var ifrom, errfrom = strconv.ParseInt(from[0], 10, 64)
 		var ito, errto = strconv.ParseInt(to[0], 10, 64)
