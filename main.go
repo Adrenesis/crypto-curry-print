@@ -213,9 +213,27 @@ func main() {
 			}
 
 		}
-		var ifrom, errfrom = strconv.ParseInt(from[0], 10, 64)
-		var ito, errto = strconv.ParseInt(to[0], 10, 64)
-		var fthresh, errthresh = strconv.ParseFloat(threshold[0], 64)
+		var ifrom int64
+		var errfrom error
+		if len(from) > 0 {
+			ifrom, errfrom = strconv.ParseInt(from[0], 10, 64)
+		} else {
+			errfrom = strconv.ErrSyntax
+		}
+		var ito int64
+		var errto error
+		if len(to) > 0 {
+			ito, errto = strconv.ParseInt(to[0], 10, 64)
+		} else {
+			errto = strconv.ErrSyntax
+		}
+		var fthresh float64
+		var errthresh error
+		if len(threshold) > 0 {
+			fthresh, errthresh = strconv.ParseFloat(threshold[0], 64)
+		} else {
+			errthresh = strconv.ErrSyntax
+		}
 		if errthresh == nil && errfrom == nil && errto == nil {
 			coinData1.CoinData = []CoinDatum{}
 			for i := 0; i < len(coinData.CoinData); i++ {
@@ -269,5 +287,9 @@ func main() {
 
 	})
 
-	http.ListenAndServe(":80", nil)
+	err := http.ListenAndServe("127.0.0.1:8880", nil)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 }
