@@ -103,7 +103,12 @@ func updateJson(from string, limit string, filename string) {
 	}
 }
 
-func UpdateJsons() {
-	updateJson("1", "5000", "cmcdb0.json")
-	updateJson("5001", "5000", "cmcdb1.json")
+func UpdateJsons(all bool) {
+	if all {
+		updateJson("1", "5000", "cmcdb0.json")
+		updateJson("5001", "5000", "cmcdb1.json")
+	} else {
+		updateJson("1", "200", "cmcdb200.json")
+	}
+
 }

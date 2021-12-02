@@ -38,12 +38,15 @@
         .number-right{
             text-align: right;
         }
+        .confirm {
+            font-size: small;
+        }
     </style>
 {% endblock %}
 {% block body %}
     <form action="/index">
         <label for="from">From # </label>
-        <input type="number" id="from" name="from" value="{{ from }}" min="1" max="10000000" step="1">
+        <input type="number" id="from" name="from" value="{{ from }}" min="0" max="10000000" step="1">
         <label for="to">To # </label>
         <input type="number" id="to" name="to" value="{{ to }}" min="1" max="10000000" step="1">
         <label for="price-threshold">Price < </label>
@@ -53,11 +56,12 @@
         <input type="submit" value="v Vol" name="decr-vol">
         <input type="submit" value="^ price" name="incr-price">
         <input type="submit" value="v price" name="decr-price">
-        <input type="submit" value="REFRESH /!\\" name="refresh">
+        <input type="submit" value="REFRESH ALL /!\ (40 credits)" name="refresh_all">
+        <input type="submit" value="REFRESH last 200 /!\ (1 credit)" name="refresh">
         <!-- Rounded switch -->
-        <label class="switch">
+        <label class="confirm">
             <input type="checkbox" name="confirm" id="confirm">
-            I understand that I will use Api credits from coin market cap (~40)
+            Consume coin market cap Api credits
         </label>
     </form>
 

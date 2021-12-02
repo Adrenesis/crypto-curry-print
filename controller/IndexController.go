@@ -45,26 +45,41 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	incrPrice := r.URL.Query()["incr-price"]
 	decrPrice := r.URL.Query()["decr-price"]
 	refresh := r.URL.Query()["refresh"]
+	refreshAll := r.URL.Query()["refresh_all"]
 	confirm := r.URL.Query()["confirm"]
 	fmt.Println("confirm", confirm)
 	var coinData Model.CoinData
 	var coinData1 Model.CoinData
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
-			Model.UpdateJsons()
-			coinData = Model.ReadJson("cmcdb0.json")
-			coinData1 = Model.ReadJson("cmcdb1.json")
+			Model.UpdateJsons(false)
+			coinData = Model.ReadCryptosSQLDB()
+			coinData1 = Model.ReadJson("cmcdb200.json")
 			for i := 0; i < len(coinData1.CoinData); i++ {
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			}
+			Model.WriteCryptosSQLDB(coinData)
+		} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
+			if confirm[0] == "on" {
+				Model.UpdateJsons(true)
+				coinData = Model.ReadJson("cmcdb0.json")
+				coinData1 = Model.ReadJson("cmcdb1.json")
+				for i := 0; i < len(coinData1.CoinData); i++ {
+					coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+				}
+			}
+			Model.WriteCryptosSQLDB(coinData)
 		}
-
 	} else {
-		coinData = Model.ReadJson("cmcdb0.json")
-		coinData1 = Model.ReadJson("cmcdb1.json")
-		for i := 0; i < len(coinData1.CoinData); i++ {
-			coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
-		}
+
+		//coinData = Model.ReadJson("cmcdb0.json")
+		//coinData1 = Model.ReadJson("cmcdb1.json")
+		//for i := 0; i < len(coinData1.CoinData); i++ {
+		//	coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+		//}
+		//Model.WriteCryptosSQLDB(coinData)
+
+		coinData = Model.ReadCryptosSQLDB()
 	}
 	//for i := 0; i < len(coinData.CoinData); i++ {
 	//	fmt.Println("Name: ", coinData.CoinData[i].Name)
@@ -116,8 +131,8 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	} else {
 		coinData1.CoinData = coinData.CoinData
 	}
-	sfrom := "1"
-	sto := "10000"
+	sfrom := "0"
+	sto := "100000"
 	sthreshold := "0.1"
 	if errfrom == nil {
 		sfrom = from[0]
