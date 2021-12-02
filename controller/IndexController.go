@@ -2,11 +2,11 @@ package controller
 
 import (
 	Model "../model"
+	View "../view"
 	"fmt"
 	"github.com/tyler-sommer/stick"
 	"log"
 	"net/http"
-	"os"
 	"sort"
 	"strconv"
 )
@@ -142,18 +142,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		sortPriceDecrease(coinData1)
 	}
 
-	fsRoot, _ := os.Getwd() // Templates are loaded relative to this directory.
-	env := stick.New(stick.NewFilesystemLoader(fsRoot))
-	env.Filters["number_format"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
-		v := stick.CoerceNumber(val)
-		// Do some formatting.
-		return fmt.Sprintf("%.10f", v)
-	}
-	env.Filters["number_format_vol"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
-		v := stick.CoerceNumber(val)
-		// Do some formatting.
-		return fmt.Sprintf("%.2f", v)
-	}
+	env := View.GetEnv()
 	p := map[string]stick.Value{"coinData": coinData1, "from": sfrom, "to": sto, "threshold": sthreshold}
 	var err = env.Execute("index.html.twig", w, p) // Loads "bar.html.twig" relative to fsRoot.
 	if err != nil {

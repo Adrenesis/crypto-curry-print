@@ -1,6 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
     <link href="http://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
 <!--    <script src="main.js"></script>-->
     <style>
@@ -39,8 +39,8 @@
             text-align: right;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block body %}
     <form action="/index">
         <label for="from">From # </label>
         <input type="number" id="from" name="from" value="{{ from }}" min="1" max="10000000" step="1">
@@ -88,6 +88,4 @@
 
         {% endfor %}
     </table>
-
-</body>
-</html>
+{% endblock %}
