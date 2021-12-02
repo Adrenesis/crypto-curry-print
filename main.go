@@ -160,6 +160,13 @@ func sortPriceIncrease(data CoinData) {
 }
 
 func main() {
+	var port int64
+	var errport error
+	if len(os.Args) > 1 {
+		port, errport = strconv.ParseInt(os.Args[1], 10, 64)
+	} else {
+		errport = strconv.ErrSyntax
+	}
 	var coinData CoinData
 	var coinData1 CoinData
 	coinData = readJson("cmcdb0.json")
@@ -286,10 +293,15 @@ func main() {
 		}
 
 	})
-
-	err := http.ListenAndServe("127.0.0.1:8880", nil)
+	if errport != nil {
+		port = 8880
+	}
+	var address = fmt.Sprintf("127.0.0.1:%d", port)
+	fmt.Println("Binding http://" + address + "/index...")
+	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
+	fmt.Println("Successfully hosting on https://", address)
 }
