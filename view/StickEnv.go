@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tyler-sommer/stick"
 	"os"
+	"strings"
 )
 
 func GetEnv() *stick.Env {
@@ -19,6 +20,13 @@ func GetEnv() *stick.Env {
 		v := stick.CoerceNumber(val)
 		// Do some formatting.
 		return fmt.Sprintf("%.2f", v)
+	}
+	env.Filters["date"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
+		v := stick.CoerceString(val)
+		// Do some formatting.
+		v = fmt.Sprintf("%s", v)
+		v = strings.TrimSuffix(v, ".000Z")
+		return v
 	}
 	return env
 }

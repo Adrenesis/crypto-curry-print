@@ -9,18 +9,28 @@ type CoinData struct {
 }
 
 type CoinDatum struct {
-	Id          int64    `json:"id"`
-	Name        string   `json:"name"`
-	Symbol      string   `json:"symbol"`
-	DateAdded   string   `json:"date_added"`
-	Properties  Property `json:"quote"`
-	Explorers   []string
-	BscScan     string
-	EthScan     string
-	XrpScan     string
-	BscContract string
-	EthContract string
-	XrpContract string
+	Id            int64  `json:"id"`
+	Name          string `json:"name"`
+	Slug          string
+	Symbol        string `json:"symbol"`
+	Logo          string
+	DateAdded     string   `json:"date_added"`
+	Properties    Property `json:"quote"`
+	Explorers     []string
+	Twitters      []string
+	Websites      []string
+	Chats         []string
+	Facebooks     []string
+	MessageBoards []string
+	Technicals    []string
+	SourceCodes   []string
+	Announcements []string
+	BscScan       string
+	EthScan       string
+	XrpScan       string
+	BscContract   string
+	EthContract   string
+	XrpContract   string
 }
 
 type Property struct {

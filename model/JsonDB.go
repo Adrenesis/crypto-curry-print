@@ -35,6 +35,29 @@ func ReadJson(filename string) CoinData {
 	return coinData
 }
 
+func ReadMapJson200() CoinDataMap {
+	var coinDataMap CoinDataMap
+	coinDataMap1 := ReadMapJson("MapData" + fmt.Sprintf("%d", 200) + ".json")
+	//fmt.Println(fmt.Sprintf("%v", coinDataMap1))
+	//var elements [][]byte
+	for _, element := range coinDataMap1.CoinDataMap {
+		//fmt.Println("=>", "Element:", element)
+		//for key0, element0 := range element {
+		//	fmt.Println("Key:", key0, "=>", "Element:", element0)
+		//}
+
+		var coinDatumMap CoinDatumMap
+
+		errJson := json.Unmarshal(element, &coinDatumMap)
+		if errJson != nil {
+			fmt.Println("Failed to unmarshall json file")
+			log.Fatal(errJson)
+		}
+		coinDataMap.CoinDataMap = append(coinDataMap.CoinDataMap, coinDatumMap)
+	}
+	return coinDataMap
+}
+
 func ReadMapJson(filename string) CoinDataMapUnmarshaler {
 	// Open our jsonFile
 	jsonFile, err := os.Open(filename)
@@ -212,6 +235,62 @@ func UpdateMapJsons() {
 			fmt.Println("Succefully written", filename)
 		}
 	}
+}
+
+func UpdateMapJson() {
+	coinData := ReadCryptosSQLDB()
+	client := http.Client{}
+
+	apiKey := readApiKey(".env.json").ApiKey
+	//fmt.Println("apikey", apiKey)
+
+	var ids []int64
+	for i := 0; i < len(coinData.CoinData); i++ {
+		ids = append(ids, coinData.CoinData[i].Id)
+	}
+
+	req, err := http.NewRequest("GET", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/info", nil)
+	if err != nil {
+		//Handle Error
+	}
+	var idsString string = ""
+	for i := 0; i < 200; i++ {
+		if idsString == "" {
+			idsString = fmt.Sprintf("%d", coinData.CoinData[i].Id)
+		}
+		idsString = idsString + "," + fmt.Sprintf("%d", coinData.CoinData[i].Id)
+	}
+	q := req.URL.Query()
+	q.Add("id", idsString)
+	q.Add("aux", "urls,logo,description,tags,platform,date_added,notice,status")
+	req.URL.RawQuery = q.Encode()
+
+	req.Header.Add("X-CMC_PRO_API_KEY", apiKey)
+	req.Header.Add("Accept", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		//Handle Error
+	}
+	defer res.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		fmt.Println("Non-OK HTTP status:", res.StatusCode)
+		//fmt.Printf("%#v", req.URL.String())
+		//fmt.Printf("%#v", req)
+		fmt.Printf("%s", bodyBytes)
+		// You may read / inspect response body
+		return
+	} else {
+		// write the whole body at once
+		filename := "MapData" + fmt.Sprintf("%d", 200) + ".json"
+		err = ioutil.WriteFile(filename, bodyBytes, 0644)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Succefully written", filename)
+	}
+
 }
 
 func UpdateJsons(all bool) {

@@ -20,6 +20,7 @@ func main() {
 	}
 
 	http.HandleFunc("/index", Controller.HandleIndex)
+	http.HandleFunc("/links", Controller.HandleLinks)
 	if errport != nil {
 		port = 8880
 	}
