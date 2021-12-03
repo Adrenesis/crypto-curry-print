@@ -85,7 +85,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
-			//Model.UpdateMapJsons()
+			Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
 			Model.WriteCryptosMapSQLDB(coinDataMap)
 			//coinData = Model.ReadJson("cmcdb0.json")
@@ -98,12 +98,12 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		//Model.WriteCryptosSQLDB(coinData)
 	} else {
 
-		coinData = Model.ReadJson("cmcdb0.json")
-		coinData1 = Model.ReadJson("cmcdb1.json")
-		for i := 0; i < len(coinData1.CoinData); i++ {
-			coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
-		}
-		Model.WriteCryptosSQLDB(coinData)
+		//coinData = Model.ReadJson("cmcdb0.json")
+		//coinData1 = Model.ReadJson("cmcdb1.json")
+		//for i := 0; i < len(coinData1.CoinData); i++ {
+		//	coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+		//}
+		//Model.WriteCryptosSQLDB(coinData)
 
 		coinData = Model.ReadCryptosSQLDB()
 	}
