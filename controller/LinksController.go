@@ -1,9 +1,9 @@
 package controller
 
 import (
-	Model "../model"
-	View "../view"
 	"fmt"
+	Model "github.com/Adrenesis/crypto-curry-print/model"
+	View "github.com/Adrenesis/crypto-curry-print/view"
 	"github.com/tyler-sommer/stick"
 	"log"
 	"net/http"

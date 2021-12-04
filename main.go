@@ -1,8 +1,8 @@
 package main
 
 import (
-	Controller "./controller"
 	"fmt"
+	Controller "github.com/Adrenesis/crypto-curry-print/controller"
 	"log"
 	"net/http"
 	"os"
