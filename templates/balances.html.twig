@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    <link href="http://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
+<!--    <script src="main.js"></script>-->
+    <style>
+        body{
+            font-family: 'OpenDyslexic', sans-serif;
+            font-weight: bold;
+            color: #fdbb62;
+            background-color: #211301;
+        }
+        a {
+            color:limegreen;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <form action="/bscbalances">
+        <input type="submit" value="Go" name="submit">
+        <textarea name="contracts" id="contracts"
+                  rows="5" cols="50">Paste addresses here</textarea>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Address
+                </th>
+                <th>
+                    Contract
+                </th>
+                <th>
+                    Amount
+                </th>
+
+            </tr>
+        </thead>
+        {% for balance in balances.Balances %}
+        <tr>
+            <td>
+                {{ balance.CoinDatum.Name }}
+            </td>
+            <td>
+                {{ balance.Address }}
+            </td>
+            <td>
+                {{ balance.Contract }}
+            </td>
+            <td>
+                {{balance.Amount }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+{% endblock %}

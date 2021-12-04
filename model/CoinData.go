@@ -1,9 +1,5 @@
 package model
 
-type ApiKeyData struct {
-	ApiKey string `json:"api_key"`
-}
-
 type CoinData struct {
 	CoinData []CoinDatum `json:"data"`
 }

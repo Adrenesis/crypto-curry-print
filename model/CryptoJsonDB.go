@@ -113,7 +113,7 @@ func ReadMapJsons() CoinDataMap {
 	return coinDataMap
 }
 
-func readApiKey(filename string) ApiKeyData {
+func ReadApiKey(filename string) ApiKeyData {
 	// Open our jsonFile
 	jsonFile, err := os.Open(filename)
 	// if we os.Open returns an error then handle it
@@ -142,7 +142,7 @@ func readApiKey(filename string) ApiKeyData {
 func updateJson(from string, limit string, filename string) {
 	client := http.Client{}
 
-	apiKey := readApiKey(".env.json").ApiKey
+	apiKey := ReadApiKey(".env.json").CMCApiKey
 	//fmt.Println("apikey", apiKey)
 
 	req, err := http.NewRequest("GET", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest", nil)
@@ -185,7 +185,7 @@ func UpdateMapJsons() {
 	coinData := ReadCryptosSQLDB()
 	client := http.Client{}
 
-	apiKey := readApiKey(".env.json").ApiKey
+	apiKey := ReadApiKey(".env.json").CMCApiKey
 	//fmt.Println("apikey", apiKey)
 
 	var ids []int64
@@ -241,7 +241,7 @@ func UpdateMapJson() {
 	coinData := ReadCryptosSQLDB()
 	client := http.Client{}
 
-	apiKey := readApiKey(".env.json").ApiKey
+	apiKey := ReadApiKey(".env.json").CMCApiKey
 	//fmt.Println("apikey", apiKey)
 
 	var ids []int64
