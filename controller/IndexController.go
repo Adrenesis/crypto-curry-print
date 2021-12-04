@@ -85,7 +85,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
-			Model.UpdateMapJsons()
+			//Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
 			Model.WriteCryptosMapSQLDB(coinDataMap)
 			//coinData = Model.ReadJson("cmcdb0.json")

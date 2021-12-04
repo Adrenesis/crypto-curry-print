@@ -16,7 +16,7 @@ func ReadCryptoSQLDB(id int64) CoinDatum {
 		log.Fatal(err)
 	}
 
-	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement from cryptos WHERE id = ?  order by date_added desc;", fmt.Sprintf("%d", id))
+	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap from cryptos where id = ? order by date_added desc;", fmt.Sprintf("%d", id))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +25,8 @@ func ReadCryptoSQLDB(id int64) CoinDatum {
 	for rows.Next() {
 		var slug interface{}
 		var logo interface{}
-		var explorer string
+		var tags interface{}
+		var explorer interface{}
 		var twitter interface{}
 		var website interface{}
 		var facebook interface{}
@@ -63,10 +64,24 @@ func ReadCryptoSQLDB(id int64) CoinDatum {
 			&messageBoard,
 			&technical,
 			&sourceCode,
-			&announcement); err != nil {
+			&announcement,
+			&tags,
+			&coinDatum.MaxSupply,
+			&coinDatum.CirculatingSupply,
+			&coinDatum.Properties.Dollar.Volume24,
+			&coinDatum.Properties.Dollar.VolumeChange24,
+			&coinDatum.Properties.Dollar.PercentChange24,
+			&coinDatum.Properties.Dollar.PercentChange7d,
+			&coinDatum.Properties.Dollar.PercentChange30d,
+			&coinDatum.Properties.Dollar.PercentChange60d,
+			&coinDatum.Properties.Dollar.PercentChange90d,
+			&coinDatum.Properties.Dollar.MarketCap,
+			&coinDatum.Properties.Dollar.MarketCapDominance,
+			&coinDatum.Properties.Dollar.FullyDilutedMarketPrice); err != nil {
 			log.Fatal(err)
 		}
-		coinDatum.Explorers = strings.Split(explorer, ",")
+		coinDatum.Tags = strings.Split(fmt.Sprintf("%v", tags), ",")
+		coinDatum.Explorers = strings.Split(fmt.Sprintf("%v", explorer), ",")
 		coinDatum.Twitters = strings.Split(fmt.Sprintf("%v", twitter), ",")
 		coinDatum.Facebooks = strings.Split(fmt.Sprintf("%v", facebook), ",")
 		coinDatum.Websites = strings.Split(fmt.Sprintf("%v", website), ",")
@@ -107,7 +122,7 @@ func ReadCryptosSQLDB() CoinData {
 		log.Fatal(err)
 	}
 	CreateTable()
-	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement from cryptos order by date_added desc;")
+	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap from cryptos order by date_added desc;")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,7 +131,7 @@ func ReadCryptosSQLDB() CoinData {
 		var coinDatum CoinDatum
 		var slug interface{}
 		var logo interface{}
-		var explorer string
+		var explorer interface{}
 		var twitter interface{}
 		var website interface{}
 		var facebook interface{}
@@ -125,6 +140,7 @@ func ReadCryptosSQLDB() CoinData {
 		var technical interface{}
 		var sourceCode interface{}
 		var announcement interface{}
+		var tags interface{}
 		var bscScan interface{}
 		var ethScan interface{}
 		var xrpScan interface{}
@@ -154,10 +170,24 @@ func ReadCryptosSQLDB() CoinData {
 			&messageBoard,
 			&technical,
 			&sourceCode,
-			&announcement); err != nil {
+			&announcement,
+			&tags,
+			&coinDatum.MaxSupply,
+			&coinDatum.CirculatingSupply,
+			&coinDatum.Properties.Dollar.Volume24,
+			&coinDatum.Properties.Dollar.VolumeChange24,
+			&coinDatum.Properties.Dollar.PercentChange24,
+			&coinDatum.Properties.Dollar.PercentChange7d,
+			&coinDatum.Properties.Dollar.PercentChange30d,
+			&coinDatum.Properties.Dollar.PercentChange60d,
+			&coinDatum.Properties.Dollar.PercentChange90d,
+			&coinDatum.Properties.Dollar.MarketCap,
+			&coinDatum.Properties.Dollar.MarketCapDominance,
+			&coinDatum.Properties.Dollar.FullyDilutedMarketPrice); err != nil {
 			log.Fatal(err)
 		}
-		coinDatum.Explorers = strings.Split(explorer, ",")
+		coinDatum.Tags = strings.Split(fmt.Sprintf("%v", tags), ",")
+		coinDatum.Explorers = strings.Split(fmt.Sprintf("%v", explorer), ",")
 		coinDatum.Twitters = strings.Split(fmt.Sprintf("%v", twitter), ",")
 		coinDatum.Facebooks = strings.Split(fmt.Sprintf("%v", facebook), ",")
 		coinDatum.Websites = strings.Split(fmt.Sprintf("%v", website), ",")
@@ -208,12 +238,17 @@ func CreateTable() {
 
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
-create table if not exists cryptos(id INTEGER, name VARCHAR, slug VARCHAR, symbol VARCHAR, logo TEXT, price REAL, vol24 REAL, date_added TEXT, explorer TEXT, bscscan TEXT, ethscan TEXT, xrpscan TEXT, bsccontract TEXT, ethcontract TEXT, xrpcontract TEXT, twitter TEXT, website TEXT, facebook TEXT, chat TEXT, message_board TEXT, technical TEXT, source_code TEXT, announcement TEXT, PRIMARY KEY(id));
+create table if not exists cryptos(id INTEGER, name VARCHAR, slug VARCHAR, symbol VARCHAR, logo TEXT, price REAL, vol24 REAL, date_added TEXT, explorer TEXT, bscscan TEXT, ethscan TEXT, xrpscan TEXT, bsccontract TEXT, ethcontract TEXT, xrpcontract TEXT, twitter TEXT, website TEXT, facebook TEXT, chat TEXT, message_board TEXT, technical TEXT, source_code TEXT, announcement TEXT, tag TEXT, max_supply REAL, circulating_supply REAL, volchange24 REAL, percentchange24 REAL, percentchange7d REAL, percentchange30d REAL, percentchange60d REAL, percentchange90d REAL, market_cap REAL, market_cap_dominance REAL, fully_diluted_market_cap REAL, PRIMARY KEY(id));
 	`); err != nil {
 		log.Fatal(err)
 	}
 }
-
+func writeCrypto(id int64, name string, symbol string, dateAdded string, properties Property, tags []string, maxSupply float64, circulatingSupply float64) {
+	db, tx, stmt := Prepare("INSERT INTO cryptos (id, name, symbol, date_added, tag, max_supply, circulating_supply, price, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
+	tagString := serializeStringList(tags)
+	ExecIgnoreDuplicate(tx, stmt, id, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice)
+	CloseDB(db)
+}
 func WriteCryptosSQLDB(coinData CoinData) {
 	db, err := sql.Open("sqlite", "./cryptoDB.db")
 	if err != nil {
@@ -230,19 +265,16 @@ func WriteCryptosSQLDB(coinData CoinData) {
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
 		//	fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) +"', '" +
 		//	coinData.CoinData[i].DateAdded +"');")
-		if _, err = db.Exec("INSERT INTO cryptos (id, name, symbol, price, vol24, date_added, explorer) VALUES ('" +
-			fmt.Sprintf("%d", coinData.CoinData[i].Id) + "', '" +
-			strings.Replace(coinData.CoinData[i].Name, "'", "''", -1) + "', '" +
-			strings.Replace(coinData.CoinData[i].Symbol, "'", "''", -1) + "', '" +
-			fmt.Sprintf("%.7f", coinData.CoinData[i].Properties.Dollar.Price) + "', '" +
-			fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) + "', '" +
-			coinData.CoinData[i].DateAdded + "', '" +
-			"" + "');"); err != nil {
-			s := fmt.Sprintf("%v", err)
-			if !strings.HasSuffix(s, "(1555)") {
-				log.Fatal(err)
-			}
-		}
+		//
+		writeCrypto(coinData.CoinData[i].Id,
+			coinData.CoinData[i].Name,
+			coinData.CoinData[i].Symbol,
+			coinData.CoinData[i].DateAdded,
+			coinData.CoinData[i].Properties,
+			coinData.CoinData[i].Tags,
+			coinData.CoinData[i].MaxSupply,
+			coinData.CoinData[i].CirculatingSupply,
+		)
 	}
 	CloseDB(db)
 
@@ -276,6 +308,20 @@ func Exec(tx *sql.Tx, stmt *sql.Stmt, args ...interface{}) {
 		log.Fatal(err)
 
 	}
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func ExecIgnoreDuplicate(tx *sql.Tx, stmt *sql.Stmt, args ...interface{}) {
+	defer tx.Rollback()
+	_, err := stmt.Exec(args...)
+	s := fmt.Sprintf("%v", err)
+	if err != nil && !strings.HasSuffix(s, "(1555)") {
+		log.Fatal(err)
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)

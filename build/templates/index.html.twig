@@ -23,14 +23,6 @@
             text-decoration: underline;
             font-size: 110%;
         }
-        .percent-change {
-            color: white;
-            background-color: darkgreen;
-        }
-        .percent-negative {
-            color: white;
-            background-color: darkred!important;
-        }
 
         th {
             position: sticky;
@@ -154,14 +146,7 @@
 
 
                 <td>{{ coinDatum.Symbol }}</td>
-                <td class="number-right"><span class = "percent-change
-                    {% if coinDatum.Properties.Dollar.PercentChange24 < 0 %}
-                        percent-negative
-                    {% endif %}
-                    "
-                >{{ coinDatum.Properties.Dollar.PercentChange24|percent }}</span>
-                    {{ coinDatum.Properties.Dollar.Price|number_format }}
-                </td>
+                <td class="number-right">{{ coinDatum.Properties.Dollar.Price|number_format }}</td>
                 <td class="number-right">{{ coinDatum.Properties.Dollar.Volume24|number_format_vol }}</td>
                 <td style="text-align: end;">{{ coinDatum.DateAdded|date }}</td>
                 {% if coinDatum.BscScan != "<nil>" %}

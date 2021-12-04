@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    <link href="http://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
+<!--    <script src="main.js"></script>-->
+    <style>
+        body{
+            font-family: 'OpenDyslexic', sans-serif;
+            font-weight: bold;
+            color: #fdbb62;
+            background-color: #211301;
+        }
+        a {
+            color:limegreen;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    {% for link in coinDatum.Explorers %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.Twitters %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.Websites %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.Chats %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.MessageBoards %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.Techincals %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.SourceCodes %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.Announcements %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+    {% for link in coinDatum.explorer %}
+        <a href="{{link}}">{{link}}</a><br>
+    {% endfor %}
+
+
+{% endblock %}
