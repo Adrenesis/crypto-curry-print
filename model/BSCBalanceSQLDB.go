@@ -8,13 +8,12 @@ import (
 	//"time"
 )
 
-func ReadBSCBalanceSQLDB(address string, contract string) BSCBalance {
+func ReadBSCBalanceSQLDB(address string, contract string, HDDSource bool) BSCBalance {
 	fmt.Println("reading database...")
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	CreateBSCBalancesTable()
+
+	CreateBSCBalancesTable(HDDSource)
+	db := OpenDB(HDDSource)
+	var err error
 	rows, err := db.Query("select address, contract, balance from bscbalances where address = ? AND contract = ?;", address, contract)
 	if err != nil {
 		log.Fatal(err)
@@ -40,17 +39,16 @@ func ReadBSCBalanceSQLDB(address string, contract string) BSCBalance {
 		log.Fatal(err)
 	}
 
-	CloseDB(db)
+	//CloseDB(db)
 	return bscBalance
 }
 
-func ReadBSCBalancesSQLDB() BSCBalances {
+func ReadBSCBalancesSQLDB(HDDSource bool) BSCBalances {
 	fmt.Println("reading database...")
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	CreateBSCBalancesTable()
+
+	CreateBSCBalancesTable(HDDSource)
+	db := OpenDB(HDDSource)
+	var err error
 	rows, err := db.Query("select address, contract, balance from bscbalances;")
 	if err != nil {
 		log.Fatal(err)
@@ -80,17 +78,14 @@ func ReadBSCBalancesSQLDB() BSCBalances {
 	//	log.Fatal(err)
 	//}
 	//fmt.Println(fmt.Sprintf("%v", bscBalances))
-	CloseDB(db)
+	//CloseDB(db)
 	fmt.Println(fmt.Sprintf("%v", bscBalances))
 	return bscBalances
 }
 
-func CreateBSCBalancesTable() {
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func CreateBSCBalancesTable(HDDSource bool) {
+	db := OpenDB(HDDSource)
+	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
 create table if not exists bscbalances (address VARCHAR, contract VARCHAR, balance REAL, PRIMARY KEY(address, contract));
@@ -98,27 +93,26 @@ create table if not exists bscbalances (address VARCHAR, contract VARCHAR, balan
 		log.Fatal(err)
 	}
 }
-func writeBSCBalance(address string, contract string, balance float64) {
-	db, tx, stmt := Prepare("INSERT INTO bscbalances (address, contract, balance) VALUES(?, ?, ?);")
-	ExecIgnoreDuplicate(tx, stmt, address, contract, balance)
-	CloseDB(db)
-}
-func WriteBSCBalancesSQLDB(bscBalances BSCBalances) {
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
+func writeBSCBalance(address string, contract string, balance float64, db *sql.DB) {
 
-	CreateBSCBalancesTable()
+	stmt := Prepare("INSERT INTO bscbalances (address, contract, balance) VALUES(?, ?, ?);", db)
+	ExecIgnoreDuplicate(stmt, address, contract, balance)
+
+}
+func WriteBSCBalancesSQLDB(bscBalances BSCBalances, HDDSource bool) {
+	CreateBSCBalancesTable(HDDSource)
+	db := OpenDB(HDDSource)
+	tx := TxBegin(db)
 
 	for i := 0; i < len(bscBalances.Balances); i++ {
 		writeBSCBalance(
 
 			bscBalances.Balances[i].Address,
 			bscBalances.Balances[i].Contract,
-			bscBalances.Balances[i].Amount)
+			bscBalances.Balances[i].Amount,
+			db)
 	}
+	TxCommit(tx)
 	CloseDB(db)
 
 }

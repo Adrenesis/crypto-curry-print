@@ -11,6 +11,31 @@ import (
 	"strconv"
 )
 
+var DBinited = false
+var cData Model.CoinData
+
+func InitDB() {
+	DBinited = true
+	Model.DBAlt = true
+
+	cData = Model.ReadCryptosSQLDB(true)
+	bscBalances := Model.ReadBSCBalancesSQLDB(true)
+	bscContracts := Model.ReadBSCContractsQLDB(true)
+	fmt.Println(fmt.Sprintf("%v", cData))
+	Model.DBAlt = false
+	//Model.CreateCryptoTable()
+	//Model.WriteCryptosSQLDB(cData)
+	Model.WriteCryptosFullSQLDB(cData, false)
+	//var cd Model.CoinData
+	//cd = Model.ReadCryptosSQLDB(false)
+	//fmt.Println(fmt.Sprintf("%v", cd))
+	//fmt.Println("This is from RAM")
+	//cData = Model.ReadCryptosSQLDB()
+	//fmt.Println(fmt.Sprintf("%v", cData))
+	Model.WriteBSCContractsSQLDB(bscContracts, false)
+	Model.WriteBSCBalancesSQLDB(bscBalances, false)
+}
+
 func sortVolumeDecrease(data Model.CoinData) {
 	sort.Slice(data.CoinData[:], func(i, j int) bool {
 		return data.CoinData[i].Properties.Dollar.Volume24 > data.CoinData[j].Properties.Dollar.Volume24
@@ -36,6 +61,9 @@ func sortPriceIncrease(data Model.CoinData) {
 }
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
+	if !DBinited {
+		InitDB()
+	}
 	from := r.URL.Query()["from"]
 	to := r.URL.Query()["to"]
 	threshold := r.URL.Query()["price-threshold"]
@@ -56,18 +84,18 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
 			Model.UpdateJsons(false)
-			coinData = Model.ReadCryptosSQLDB()
+			coinData = Model.ReadCryptosSQLDB(false)
 			coinData1 = Model.ReadJson("cmcdb200.json")
 			for i := 0; i < len(coinData1.CoinData); i++ {
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			}
-			Model.WriteCryptosSQLDB(coinData)
+			Model.WriteCryptosSQLDB(coinData, false)
 			Model.UpdateMapJson()
 			var coinDataMap Model.CoinDataMap
 			coinDataMap = Model.ReadMapJson200()
-			Model.WriteCryptosMapSQLDB(coinDataMap)
+			Model.WriteCryptosMapSQLDB(coinDataMap, false)
 		}
-		coinData = Model.ReadCryptosSQLDB()
+		coinData = Model.ReadCryptosSQLDB(false)
 	} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
 
 		fmt.Println("getting all cryptocurrencies...")
@@ -79,21 +107,21 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			}
 		}
-		Model.WriteCryptosSQLDB(coinData)
-		coinData = Model.ReadCryptosSQLDB()
+		Model.WriteCryptosSQLDB(coinData, false)
+		coinData = Model.ReadCryptosSQLDB(false)
 	} else if (len(refreshMap) > 0) && (len(confirm) > 0) {
 
 		fmt.Println("getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
 			Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
-			Model.WriteCryptosMapSQLDB(coinDataMap)
+			Model.WriteCryptosMapSQLDB(coinDataMap, false)
 			//coinData = Model.ReadJson("cmcdb0.json")
 			//coinData1 = Model.ReadJson("cmcdb1.json")
 			//for i := 0; i < len(coinData1.CoinData); i++ {
 			//	coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			//}
-			coinData = Model.ReadCryptosSQLDB()
+			coinData = Model.ReadCryptosSQLDB(false)
 		}
 		//Model.WriteCryptosSQLDB(coinData)
 	} else {
@@ -105,7 +133,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		//}
 		//Model.WriteCryptosSQLDB(coinData)
 
-		coinData = Model.ReadCryptosSQLDB()
+		coinData = Model.ReadCryptosSQLDB(false)
 	}
 	//for i := 0; i < len(coinData.CoinData); i++ {
 	//	fmt.Println("Name: ", coinData.CoinData[i].Name)
@@ -184,7 +212,9 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 	//fmt.Println(fmt.Sprintf("%v", coinData1))
 	env := View.GetEnv()
-	fmt.Println(nil)
+	//fmt.Println(fmt.Sprintf("#%v", Model.DBReady))
+	//fmt.Println(fmt.Sprintf("#%v", Model.DBAlt))
+	//fmt.Println("db inited", DBinited)
 	p := map[string]stick.Value{"coinData": coinData1, "from": sfrom, "to": sto, "threshold": sthreshold}
 	var err = env.Execute("index.html.twig", w, p) // Loads "bar.html.twig" relative to fsRoot.
 	if err != nil {

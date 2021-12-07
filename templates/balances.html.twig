@@ -36,6 +36,9 @@
                 <th>
                     Amount
                 </th>
+                <th>
+                    in $
+                </th>
 
             </tr>
         </thead>
@@ -48,10 +51,13 @@
                 {{ balance.Address }}
             </td>
             <td>
-                {{ balance.Contract }}
+                <a href="https://bscscan.com/token/{{ balance.Contract }}">{{ balance.Contract }}</a>
             </td>
             <td>
                 {{balance.Amount }}
+            </td>
+            <td>
+                {{balance.Amount * balance.CoinDatum.Properties.Dollar.Price }}
             </td>
         </tr>
         {% endfor %}

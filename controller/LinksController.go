@@ -31,7 +31,7 @@ func HandleLinks(w http.ResponseWriter, r *http.Request) {
 	if len(id) > 0 {
 		iId, _ = strconv.ParseInt(id[0], 10, 64)
 	}
-	coinDatum = Model.ReadCryptoSQLDB(iId)
+	coinDatum = Model.ReadCryptoSQLDB(iId, false)
 	//fmt.Println(fmt.Sprintf("%v", coinData1))
 	env := View.GetEnv()
 	fmt.Println(nil)

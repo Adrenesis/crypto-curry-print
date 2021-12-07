@@ -1,10 +1,12 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -44,14 +46,14 @@ func ReadBSCBalancesFromBSCScan(bscContracts BSCContracts) BSCBalances {
 	var bscBalances BSCBalances
 	for i := 0; i < 1; i++ {
 		var bscBalance BSCBalance
-		UpdateBalanceJson("0xDDd0933873b580313Beb493020F9f72DDA03c9Cb", bscContracts.Contracts[i], "lastbscresult.json")
+		UpdateBSCScanBalanceJson("0xDDd0933873b580313Beb493020F9f72DDA03c9Cb", bscContracts.Contracts[i], "lastbscresult.json")
 		bscBalance = ReadBSCScanResultJson("0xDDd0933873b580313Beb493020F9f72DDA03c9Cb", bscContracts.Contracts[i], "lastbscresult.json")
 		bscBalances.Balances = append(bscBalances.Balances, bscBalance)
 	}
 	return bscBalances
 }
 
-func UpdateBalanceJson(address string, contract string, filename string) {
+func UpdateBSCScanBalanceJson(address string, contract string, filename string) {
 	client := http.Client{}
 
 	//apiKey := readApiKey(".env.json").ApiKey
@@ -94,4 +96,289 @@ func UpdateBalanceJson(address string, contract string, filename string) {
 		}
 		fmt.Println("Succefully written", filename)
 	}
+}
+
+func ReadBitQueryResultJson(address string, filename string) BSCBalances {
+	// Open our jsonFile
+	jsonFile, err := os.Open(filename)
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened ", filename)
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	// read our opened xmlFile as a byte array.
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// we initialize our Users array
+	var bitQueryResult BitQueryBSCBalanceResult
+
+	errJson := json.Unmarshal(byteValue, &bitQueryResult)
+	if errJson != nil {
+		fmt.Println("Failed to unmarshall json file")
+		log.Fatal(errJson)
+	}
+	var bscBalances BSCBalances
+	fmt.Println("bitquery result", fmt.Sprintf("%v", bitQueryResult))
+	for i := 0; i < len(bitQueryResult.Data.Properties.API[0].Balances); i++ {
+		fmt.Println(fmt.Sprintf("%v", bitQueryResult.Data.Properties.API[0].Balances[i].Token.Address))
+		var bscBalance BSCBalance
+		bscBalance.Amount = bitQueryResult.Data.Properties.API[0].Balances[i].Amount
+		bscBalance.Address = address
+		bscBalance.Contract = bitQueryResult.Data.Properties.API[0].Balances[i].Token.Address
+		if bscBalance.Amount > 0 {
+			bscBalances.Balances = append(bscBalances.Balances, bscBalance)
+		}
+	}
+
+	return bscBalances
+}
+
+func ReadBitQueryPriceResultJson(contract string, filename string) CoinData {
+	// Open our jsonFile
+	jsonFile, err := os.Open("BSCPriceTemp.json")
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened ", "BSCPriceTemp.json")
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	// read our opened xmlFile as a byte array.
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// we initialize our Users array
+	var bitQueryResult BitQueryBSCQuoteResult
+
+	errJson := json.Unmarshal(byteValue, &bitQueryResult)
+	if errJson != nil {
+		fmt.Println("Failed to unmarshall json file")
+		log.Fatal(errJson)
+	}
+
+	if len(bitQueryResult.Data.Properties.API) == 0 || bitQueryResult.Data.Properties.API == nil {
+		fmt.Sprintf("Failed to request prices, opening backup...")
+		jsonFile.Close()
+
+		jsonFile, err = os.Open(filename)
+		// if we os.Open returns an error then handle it
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		defer jsonFile.Close()
+		byteValue, _ = ioutil.ReadAll(jsonFile)
+		if errJson != nil {
+			fmt.Println("Failed to unmarshall json file")
+			log.Fatal(errJson)
+		}
+		errJson := json.Unmarshal(byteValue, &bitQueryResult)
+		if errJson != nil {
+			fmt.Println("Failed to unmarshall json file")
+			log.Fatal(errJson)
+		}
+	} else {
+		err = ioutil.WriteFile(filename, byteValue, 0644)
+		fmt.Println(fmt.Sprintf("%v", byteValue))
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Succefully written", filename)
+	}
+	fmt.Println(fmt.Sprintf("%v", bitQueryResult.Data.Properties.API))
+	var coinData CoinData
+	for i := 0; i < len(bitQueryResult.Data.Properties.API); i++ {
+		var coinDatum CoinDatum
+		coinDatum.BscContract = bitQueryResult.Data.Properties.API[i].Currency.Address
+		coinDatum.Properties.Dollar.Price = bitQueryResult.Data.Properties.API[i].Price
+		//fmt.Println("contract", coinDatum.BscContract)
+
+		//fmt.Println("coindata from bitquery coindata", fmt.Sprintf("%v", coinDatum))
+		coinData.CoinData = append(coinData.CoinData, coinDatum)
+
+	}
+	//fmt.Println("coindata from bitquery", fmt.Sprintf("%v", coinData))
+	return coinData
+}
+
+func ReadBSCPricesFromBitQuery(contract string, contractString string) CoinData {
+
+	UpdateBSCPricesJsonFromBitQuery(contract, contractString, "BSCPricesIn"+contract+".json")
+	coinData := ReadBitQueryPriceResultJson(contract, "BSCPricesIn"+contract+".json")
+
+	return coinData
+}
+
+func ReadBSCBalancesFromBitQuery(address string) BSCBalances {
+
+	UpdateBSCBalanceJsonFromBitQuery(address, address+"bscbalance.json")
+	bscBalances := ReadBitQueryResultJson(address, address+"bscbalance.json")
+
+	return bscBalances
+}
+
+func UpdateBSCBalanceJsonFromBitQuery(address string, filename string) {
+	query := `
+			{
+			  ethereum(network: bsc) {
+				address(address: {is: "` + address + `"}) {
+				  balances {
+					value
+					currency {
+					  symbol
+					  address
+					}
+				  }
+				}
+			  }
+			}
+        `
+	UpdateJsonFromBitQueryFactory(query, filename)
+}
+
+func UpdateBSCPricesJsonFromBitQuery(contract string, contractString string, filename string) {
+	query := `{
+				  ethereum(network: bsc) {
+					dexTrades(
+					  options: {desc: ["block.height","tradeIndex"]
+					  limitBy: {each: "baseCurrency.address" limit:1}}
+					  exchangeName: {is: "Pancake v2"}
+					  baseCurrency: {not: "` + contract + `"}
+					  quoteCurrency: {is: "` + contract + `"}
+					  
+					) {
+
+					  tradeIndex
+					  block {
+						height
+					  }
+					  baseCurrency {
+						symbol
+						address
+					  }
+					  quoteCurrency {
+						address
+					  }
+					  quotePrice
+				   
+					}
+				  }
+				}
+        `
+	fmt.Println(query)
+	UpdateJsonFromBitQueryFactory(query, "BSCPriceTemp.json")
+}
+
+func UpdateJsonFromBitQueryFactory(query string, filename string) {
+	client := http.Client{}
+
+	apiKey := ReadApiKey(".env.json").BitQueryApiKey
+	//fmt.Println("apikey", apiKey)
+
+	data := map[string]string{
+		"query": query,
+	}
+
+	jsonValue, _ := json.Marshal(data)
+	req, err := http.NewRequest("POST", "https://graphql.bitquery.io", bytes.NewBuffer(jsonValue))
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-API-KEY", apiKey)
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("%v", err))
+		//Handle Error
+	}
+	//defer res.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		fmt.Println("Non-OK HTTP status:", res.StatusCode)
+		// You may read / inspect response body
+		return
+	} else {
+		// write the whole body at once
+		err = ioutil.WriteFile(filename, bodyBytes, 0644)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Succefully written", filename)
+	}
+}
+
+func ReadUnmarshalResultJson(address string, filename string) BSCBalances {
+	// Open our jsonFile
+	jsonFile, err := os.Open(filename)
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened ", filename)
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	// read our opened xmlFile as a byte array.
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// we initialize our Users array
+	var unmarshalResult UnmarshalBSCBalanceResult
+
+	errJson := json.Unmarshal(byteValue, &unmarshalResult)
+	if errJson != nil {
+		fmt.Println("Failed to unmarshall json file")
+		log.Fatal(errJson)
+	}
+	var bscBalances BSCBalances
+	//fmt.Println("unmarshal result", fmt.Sprintf("%v", unmarshalResult))
+	for i := 0; i < len(unmarshalResult); i++ {
+		fmt.Println(fmt.Sprintf("%v", unmarshalResult[i]))
+		var bscBalance BSCBalance
+		amount, _ := strconv.ParseFloat(unmarshalResult[i].Amount, 64)
+		bscBalance.Amount = amount / math.Pow(10, unmarshalResult[i].Decimals)
+		bscBalance.Address = address
+		bscBalance.Contract = unmarshalResult[i].Contract
+		if bscBalance.Amount > 0 {
+			bscBalances.Balances = append(bscBalances.Balances, bscBalance)
+		}
+	}
+	return bscBalances
+}
+
+func UpdateJsonFromUnmarshal(address string, filename string) {
+	client := http.Client{}
+
+	req, err := http.NewRequest("GET", "https://stg-api.unmarshal.io/v1/bsc/address/"+address+"/assets", nil)
+
+	//req.Header.Set("Content-Type", "application/json")
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("%v", err))
+		//Handle Error
+	}
+	//defer res.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		fmt.Println("Non-OK HTTP status:", res.StatusCode)
+		// You may read / inspect response body
+		return
+	} else {
+		// write the whole body at once
+		err = ioutil.WriteFile(filename, bodyBytes, 0644)
+		//fmt.Println(fmt.Sprintf("%v", bodyBytes))
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Succefully written", filename)
+	}
+}
+
+func ReadBSCBalancesFromUnmarshal(address string) BSCBalances {
+	fmt.Println("update unmarshal json...")
+	UpdateJsonFromUnmarshal(address, "BSCBalancesFromUnmarshal"+address+".json")
+	fmt.Println("read unmarshal json...")
+	bscBalances := ReadUnmarshalResultJson(address, "BSCBalancesFromUnmarshal"+address+".json")
+
+	return bscBalances
 }

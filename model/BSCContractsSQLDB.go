@@ -8,13 +8,13 @@ import (
 	//"time"
 )
 
-func ReadBSCContractsQLDB() BSCContracts {
+func ReadBSCContractsQLDB(HDDSource bool) BSCContracts {
 	fmt.Println("reading database...")
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	CreateBSCContractsTable()
+
+	var err error
+	CreateBSCContractsTable(HDDSource)
+	db := OpenDB(HDDSource)
+	//time.Sleep(2 * time.Second)
 	rows, err := db.Query("select * from bsccontracts;")
 	if err != nil {
 		log.Fatal(err)
@@ -33,16 +33,13 @@ func ReadBSCContractsQLDB() BSCContracts {
 		log.Fatal(err)
 	}
 
-	CloseDB(db)
+	//CloseDB(db)
 	return bscContracts
 }
 
-func CreateBSCContractsTable() {
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func CreateBSCContractsTable(HDDSource bool) {
+	db := OpenDB(HDDSource)
+	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
 create table if not exists bsccontracts (contract VARCHAR, PRIMARY KEY(contract));
@@ -50,22 +47,21 @@ create table if not exists bsccontracts (contract VARCHAR, PRIMARY KEY(contract)
 		log.Fatal(err)
 	}
 }
-func writeBSCContract(contract string) {
-	db, tx, stmt := Prepare("INSERT INTO bsccontracts (contract) VALUES(?);")
-	ExecIgnoreDuplicate(tx, stmt, contract)
-	CloseDB(db)
+func writeBSCContract(contract string, db *sql.DB) {
+	stmt := Prepare("INSERT INTO bsccontracts (contract) VALUES(?);", db)
+	ExecIgnoreDuplicate(stmt, contract)
+
 }
-func WriteBSCContractsSQLDB(bscContracts BSCContracts) {
-	db, err := sql.Open("sqlite", "./cryptoDB.db")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
+func WriteBSCContractsSQLDB(bscContracts BSCContracts, HDDSource bool) {
 
-	CreateBSCContractsTable()
+	fmt.Println("writing bsc contracts....")
 
+	CreateBSCContractsTable(HDDSource)
+	db := OpenDB(HDDSource)
 	for i := 0; i < len(bscContracts.Contracts); i++ {
-		writeBSCContract(bscContracts.Contracts[i])
+		stmt := Prepare("INSERT INTO bsccontracts (contract) VALUES(?);", db)
+		ExecIgnoreDuplicate(stmt, bscContracts.Contracts[i])
+		//writeBSCContract(bscContracts.Contracts[i])
 	}
 	CloseDB(db)
 
