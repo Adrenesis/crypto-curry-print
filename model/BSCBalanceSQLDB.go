@@ -65,21 +65,21 @@ func ReadBSCBalancesSQLDB(HDDSource bool) BSCBalances {
 			&balance); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(address)
+		//fmt.Println(address)
 		bscBalance.Address = fmt.Sprintf("%s", address)
 		bscBalance.Contract = fmt.Sprintf("%s", contract)
 		bscBalance.Amount = balance
 		//fmt.Println(fmt.Sprintf("%v", bscBalance))
 
 		bscBalances.Balances = append(bscBalances.Balances, bscBalance)
-		fmt.Println(fmt.Sprintf("%v", bscBalances))
+		//fmt.Println(fmt.Sprintf("%v", bscBalances))
 	}
 	//if err = rows.Err(); err != nil {
 	//	log.Fatal(err)
 	//}
 	//fmt.Println(fmt.Sprintf("%v", bscBalances))
 	//CloseDB(db)
-	fmt.Println(fmt.Sprintf("%v", bscBalances))
+	//fmt.Println(fmt.Sprintf("%v", bscBalances))
 	return bscBalances
 }
 

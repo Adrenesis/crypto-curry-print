@@ -39,6 +39,7 @@ func OpenDB(HDDSource bool) *sql.DB {
 		DBhdd = dbhdd
 		DBReady = true
 		go LaunchSaveDeamon(300 * time.Second)
+		go RewriteJsonPricesFromBitQueryEvery(20 * time.Second)
 	} else {
 		//DB.Close()
 		//time.Sleep(2 * time.Second)
@@ -51,8 +52,8 @@ func OpenDB(HDDSource bool) *sql.DB {
 		log.Fatal(err)
 		//return
 	}
-	fmt.Println("HDD DB ASKED", DBAlt)
-	fmt.Println("DB IN MEMORY", fmt.Sprintf("%v", &DB))
+	//fmt.Println("HDD DB ASKED", DBAlt)
+	//fmt.Println("DB IN MEMORY", fmt.Sprintf("%v", &DB))
 	if HDDSource {
 		return DBhdd
 	}

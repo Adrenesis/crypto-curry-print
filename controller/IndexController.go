@@ -17,11 +17,16 @@ var cData Model.CoinData
 func InitDB() {
 	DBinited = true
 	Model.DBAlt = true
-
+	Model.CreateBSCBalancesTable(true)
+	Model.CreateBSCContractsTable(true)
+	Model.CreateCryptoTable(true)
+	Model.CreateBSCBalancesTable(false)
+	Model.CreateBSCContractsTable(false)
+	Model.CreateCryptoTable(false)
 	cData = Model.ReadCryptosSQLDB(true)
 	bscBalances := Model.ReadBSCBalancesSQLDB(true)
 	bscContracts := Model.ReadBSCContractsQLDB(true)
-	fmt.Println(fmt.Sprintf("%v", cData))
+	//fmt.Println(fmt.Sprintf("%v", cData))
 	Model.DBAlt = false
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
@@ -61,9 +66,6 @@ func sortPriceIncrease(data Model.CoinData) {
 }
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
-	if !DBinited {
-		InitDB()
-	}
 	from := r.URL.Query()["from"]
 	to := r.URL.Query()["to"]
 	threshold := r.URL.Query()["price-threshold"]

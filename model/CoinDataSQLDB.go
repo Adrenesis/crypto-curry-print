@@ -203,7 +203,7 @@ func ReadCryptoByBSCContractSQLDB(contract string, HDDSource bool) CoinDatum {
 		coinDatum.BscContract = fmt.Sprintf("%v", bscContract)
 		coinDatum.EthContract = fmt.Sprintf("%v", ethContract)
 		coinDatum.XrpContract = fmt.Sprintf("%v", xrpContract)
-		fmt.Println("price: ", coinDatum.Properties.Dollar.Price)
+		//fmt.Println("price: ", coinDatum.Properties.Dollar.Price)
 	}
 	if err = rows.Err(); err != nil {
 		log.Fatal(err)
@@ -211,7 +211,7 @@ func ReadCryptoByBSCContractSQLDB(contract string, HDDSource bool) CoinDatum {
 
 	//fmt.Println(fmt.Sprintf("%v", coinData))
 
-	CloseDB(db)
+	//CloseDB(db)
 	return coinDatum
 }
 
@@ -295,8 +295,8 @@ func ReadCryptosSQLDB(HDDSource bool) CoinData {
 		coinDatum.Technicals = strings.Split(fmt.Sprintf("%v", technical), ",")
 		coinDatum.SourceCodes = strings.Split(fmt.Sprintf("%v", sourceCode), ",")
 		coinDatum.Announcements = strings.Split(fmt.Sprintf("%v", announcement), ",")
-		//coinDatum.Slug = fmt.Sprintf("%v", slug)
-		//coinDatum.Name = fmt.Sprintf("%v", name)
+		coinDatum.Slug = fmt.Sprintf("%v", slug)
+		coinDatum.Name = fmt.Sprintf("%v", name)
 		if coinDatum.Slug == "<nil>" {
 			coinDatum.Slug = strings.ToLower(coinDatum.Name)
 			coinDatum.Slug = strings.Replace(coinDatum.Slug, " ", "-", -1)
@@ -361,7 +361,7 @@ func writeCrypto(id int64, name string, symbol string, dateAdded string, propert
 }
 
 func writeCryptoByBSCContract(price float64, contract string, db *sql.DB) {
-	fmt.Println(contract)
+	//fmt.Println(contract)
 	stmt := Prepare("UPDATE cryptos SET price = ? WHERE UPPER(bsccontract) LIKE UPPER('"+contract+"');", db)
 	Exec(stmt, price)
 }
@@ -370,9 +370,12 @@ func WriteCryptosByBSCContract(data CoinData, HDDSource bool) {
 	db := OpenDB(HDDSource)
 	tx := TxBegin(db)
 
-	fmt.Println("contract before db write", fmt.Sprintf("%v", data))
+	//fmt.Println("contract before db write", fmt.Sprintf("%v", data))
 	for i := 0; i < len(data.CoinData); i++ {
-		fmt.Println(fmt.Sprintf("contract written to db %d / %D", i, len(data.CoinData)))
+		if i%250 == 0 {
+			fmt.Println(fmt.Sprintf("contract written to db %d / %d", i, len(data.CoinData)))
+		}
+
 		writeCryptoByBSCContract(data.CoinData[i].Properties.Dollar.Price, data.CoinData[i].BscContract, db)
 	}
 	TxCommit(tx)

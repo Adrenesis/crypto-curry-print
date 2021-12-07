@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	Model "github.com/Adrenesis/crypto-curry-print/model"
 	View "github.com/Adrenesis/crypto-curry-print/view"
 	"github.com/tyler-sommer/stick"
@@ -34,7 +33,7 @@ func HandleLinks(w http.ResponseWriter, r *http.Request) {
 	coinDatum = Model.ReadCryptoSQLDB(iId, false)
 	//fmt.Println(fmt.Sprintf("%v", coinData1))
 	env := View.GetEnv()
-	fmt.Println(nil)
+	//fmt.Println(nil)
 	p := map[string]stick.Value{"coinDatum": coinDatum}
 	var err = env.Execute("links.html.twig", w, p) // Loads "bar.html.twig" relative to fsRoot.
 	if err != nil {

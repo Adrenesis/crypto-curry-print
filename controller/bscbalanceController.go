@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	Model "github.com/Adrenesis/crypto-curry-print/model"
 	View "github.com/Adrenesis/crypto-curry-print/view"
 	"github.com/tyler-sommer/stick"
@@ -21,12 +20,12 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 	contractsString := r.URL.Query()["contracts"]
 	submit := r.URL.Query()["submit"]
 	//submit := r.URL.Query()["refresh"]
-	fmt.Println(contractsString)
+	//fmt.Println(contractsString)
 	//fmt.Println("confirm", confirm)
 	//fmt.Println("refresh", refreshAll)
 	var bscBalances Model.BSCBalances
 	var bscContracts Model.BSCContracts
-	fmt.Println(nil)
+	//fmt.Println(nil)
 	bscContracts = Model.ReadBSCContractsQLDB(false)
 	if (len(contractsString) > 0) && (len(submit) > 0) {
 		var bscContracts1 Model.BSCContracts
@@ -60,18 +59,18 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 		//bscContracts = Model.ReadBSCContractsQLDB()
 	}
 	for i := 0; i < len(bscBalances.Balances); i++ {
-		fmt.Println("test")
+		//fmt.Println("test")
 		bscBalances.Balances[i].CoinDatum = Model.ReadCryptoByBSCContractSQLDB(bscBalances.Balances[i].Contract, false)
 		bscBalances.Balances[i].USDConvert = bscBalances.Balances[i].Amount * bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price
-		fmt.Println(bscBalances.Balances[i].CoinDatum.Name)
-		fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
-		fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
+		//fmt.Println(bscBalances.Balances[i].CoinDatum.Name)
+		//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
+		//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
 	}
 	sortBSCbalancesPriceDecrease(bscBalances)
 	//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[0].CoinDatum))
 	env := View.GetEnv()
-	fmt.Println(fmt.Sprintf("%v", bscBalances))
-	fmt.Println(fmt.Sprintf("%v", bscContracts))
+	//fmt.Println(fmt.Sprintf("%v", bscBalances))
+	//fmt.Println(fmt.Sprintf("%v", bscContracts))
 	p := map[string]stick.Value{"balances": bscBalances, "contracts": bscContracts}
 	var err = env.Execute("balances.html.twig", w, p) // Loads "bar.html.twig" relative to fsRoot.
 	if err != nil {

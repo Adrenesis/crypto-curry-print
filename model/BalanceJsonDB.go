@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 func ReadBSCScanResultJson(address string, contract string, filename string) BSCBalance {
@@ -182,13 +183,13 @@ func ReadBitQueryPriceResultJson(contract string, filename string) CoinData {
 		}
 	} else {
 		err = ioutil.WriteFile(filename, byteValue, 0644)
-		fmt.Println(fmt.Sprintf("%v", byteValue))
+		//fmt.Println(fmt.Sprintf("%v", byteValue))
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println("Succefully written", filename)
 	}
-	fmt.Println(fmt.Sprintf("%v", bitQueryResult.Data.Properties.API))
+	//fmt.Println(fmt.Sprintf("%v", bitQueryResult.Data.Properties.API))
 	var coinData CoinData
 	for i := 0; i < len(bitQueryResult.Data.Properties.API); i++ {
 		var coinDatum CoinDatum
@@ -206,7 +207,7 @@ func ReadBitQueryPriceResultJson(contract string, filename string) CoinData {
 
 func ReadBSCPricesFromBitQuery(contract string, contractString string) CoinData {
 
-	UpdateBSCPricesJsonFromBitQuery(contract, contractString, "BSCPricesIn"+contract+".json")
+	//UpdateBSCPricesJsonFromBitQuery(contract, contractString, "BSCPricesTemp.json")
 	coinData := ReadBitQueryPriceResultJson(contract, "BSCPricesIn"+contract+".json")
 
 	return coinData
@@ -268,8 +269,63 @@ func UpdateBSCPricesJsonFromBitQuery(contract string, contractString string, fil
 				  }
 				}
         `
-	fmt.Println(query)
-	UpdateJsonFromBitQueryFactory(query, "BSCPriceTemp.json")
+	//fmt.Println(query)
+	UpdateJsonFromBitQueryFactory(query, filename)
+}
+
+func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
+	for true {
+		UpdateBSCPricesJsonFromBitQuery("0x55d398326f99059ff775485246999027b3197955", "", "AutoBSCPrices.json")
+		if IsPriceJsonFromBitQueryValid("AutoBSCPrices.json") {
+			fmt.Println("wait availability then copy")
+			jsonFile, err := os.Open("AutoBSCPrices.json")
+			// if we os.Open returns an error then handle it
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("Successfully Opened ", "AutoBSCPrices.json")
+			// defer the closing of our jsonFile so that we can parse it later on
+			defer jsonFile.Close()
+			// read our opened xmlFile as a byte array.
+			byteValue, _ := ioutil.ReadAll(jsonFile)
+
+			// write the whole body at once
+			err = ioutil.WriteFile("BSCPriceTemp.json", byteValue, 0644)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println("Succefully written", "BSCPriceTemp.json")
+		}
+		time.Sleep(duration)
+	}
+}
+
+func IsPriceJsonFromBitQueryValid(filename string) bool {
+
+	jsonFile, err := os.Open(filename)
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened ", filename)
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+	// read our opened xmlFile as a byte array.
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// we initialize our Users array
+	var bitQueryResult BitQueryBSCQuoteResult
+
+	errJson := json.Unmarshal(byteValue, &bitQueryResult)
+	if errJson != nil {
+		fmt.Println("Failed to unmarshall json file")
+		log.Fatal(errJson)
+	}
+
+	if len(bitQueryResult.Data.Properties.API) == 0 || bitQueryResult.Data.Properties.API == nil {
+		return false
+	}
+	return true
 }
 
 func UpdateJsonFromBitQueryFactory(query string, filename string) {

@@ -18,6 +18,9 @@ func main() {
 	} else {
 		errport = strconv.ErrSyntax
 	}
+	//mode := Model
+	//Controller.InitDB()
+	Controller.InitDB()
 
 	http.HandleFunc("/index", Controller.HandleIndex)
 	http.HandleFunc("/links", Controller.HandleLinks)
