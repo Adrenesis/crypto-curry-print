@@ -6,12 +6,13 @@ import (
 	"log"
 	_ "modernc.org/sqlite"
 	"strings"
+	"time"
 	//"time"
 )
 
-func ReadCryptoSQLDB(id int64, HDDSource bool) CoinDatum {
+func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
 	fmt.Println("reading database...")
-	db := OpenDB(HDDSource)
+	db := OpenDB(DBSource)
 	var err error
 
 	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap from cryptos where id = ? order by date_added desc;", fmt.Sprintf("%d", id))
@@ -113,9 +114,9 @@ func ReadCryptoSQLDB(id int64, HDDSource bool) CoinDatum {
 	return coinDatum
 }
 
-func ReadCryptoByBSCContractSQLDB(contract string, HDDSource bool) CoinDatum {
+func ReadCryptoByBSCContractSQLDB(contract string, DBSource string) CoinDatum {
 	fmt.Println("reading database...")
-	db := OpenDB(HDDSource)
+	db := OpenDB(DBSource)
 	var err error
 	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap from cryptos where UPPER(bsccontract) LIKE UPPER('" + contract + "') order by date_added desc;")
 	if err != nil {
@@ -215,11 +216,11 @@ func ReadCryptoByBSCContractSQLDB(contract string, HDDSource bool) CoinDatum {
 	return coinDatum
 }
 
-func ReadCryptosSQLDB(HDDSource bool) CoinData {
+func ReadCryptosSQLDB(DBSource string) CoinData {
 	fmt.Println("reading database...")
-	db := OpenDB(HDDSource)
+	db := OpenDB(DBSource)
 	var err error
-	CreateCryptoTable(HDDSource)
+	CreateCryptoTable(DBSource)
 	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap from cryptos order by date_added desc;")
 	if err != nil {
 		log.Fatal(err)
@@ -322,8 +323,8 @@ func ReadCryptosSQLDB(HDDSource bool) CoinData {
 	return coinData
 }
 
-func CreateCryptoTable(HDDSource bool) {
-	db := OpenDB(HDDSource)
+func CreateCryptoTable(DBSource string) {
+	db := OpenDB(DBSource)
 	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
@@ -359,6 +360,14 @@ func writeCrypto(id int64, name string, symbol string, dateAdded string, propert
 	stmt = Prepare("UPDATE cryptos SET name = ?, symbol = ?, date_added = ?, tag = ?, max_supply = ?, circulating_supply = ?, price = ?, vol24 = ?, volchange24 = ?, percentchange24 = ?, percentchange7d = ?, percentchange30d = ?, percentchange60d = ?, percentchange90d = ?, market_cap = ?, market_cap_dominance = ?, fully_diluted_market_cap = ? WHERE id = ?;", db)
 	Exec(stmt, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, id)
 }
+func writeCryptoPrice(id int64, properties Property, db *sql.DB) {
+
+	//stmt := Prepare("INSERT INTO cryptos (id, price) VALUES(?, ?);", db)
+
+	//ExecIgnoreDuplicate(stmt, id, properties.Dollar.Price)
+	stmt := Prepare("UPDATE cryptos SET price = ? WHERE id = ?;", db)
+	Exec(stmt, properties.Dollar.Price, id)
+}
 
 func writeCryptoByBSCContract(price float64, contract string, db *sql.DB) {
 	//fmt.Println(contract)
@@ -366,8 +375,8 @@ func writeCryptoByBSCContract(price float64, contract string, db *sql.DB) {
 	Exec(stmt, price)
 }
 
-func WriteCryptosByBSCContract(data CoinData, HDDSource bool) {
-	db := OpenDB(HDDSource)
+func WriteCryptosByBSCContract(data CoinData, DBSource string) {
+	db := OpenDB(DBSource)
 	tx := TxBegin(db)
 
 	//fmt.Println("contract before db write", fmt.Sprintf("%v", data))
@@ -375,18 +384,27 @@ func WriteCryptosByBSCContract(data CoinData, HDDSource bool) {
 		if i%250 == 0 {
 			fmt.Println(fmt.Sprintf("contract written to db %d / %d", i, len(data.CoinData)))
 		}
+		if i%25 == 0 {
+			time.Sleep(120 * time.Millisecond)
+		}
 
 		writeCryptoByBSCContract(data.CoinData[i].Properties.Dollar.Price, data.CoinData[i].BscContract, db)
+
+	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
 	}
 	TxCommit(tx)
-	CloseDB(db)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 
 }
-func WriteCryptosSQLDB(coinData CoinData, HDDSource bool) {
+func WriteCryptosSQLDB(coinData CoinData, DBSource string) {
 
-	db := OpenDB(HDDSource)
+	db := OpenDB(DBSource)
 	tx := TxBegin(db)
-	CreateCryptoTable(HDDSource)
+	CreateCryptoTable(DBSource)
 	//CreateCryptoTable()
 	fmt.Println("writing cryptos in database...")
 	for i := 0; i < len(coinData.CoinData); i++ {
@@ -408,8 +426,42 @@ func WriteCryptosSQLDB(coinData CoinData, HDDSource bool) {
 			db,
 		)
 	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
 	TxCommit(tx)
-	CloseDB(db)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
+
+}
+func WriteCryptosPriceSQLDB(coinData CoinData, DBSource string) {
+
+	db := OpenDB(DBSource)
+	tx := TxBegin(db)
+	CreateCryptoTable(DBSource)
+	//CreateCryptoTable()
+	fmt.Println("writing cryptos in database...")
+	for i := 0; i < len(coinData.CoinData); i++ {
+		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
+		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
+		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
+		//	fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24) +"', '" +
+		//	coinData.CoinData[i].DateAdded +"');")
+		//
+		writeCryptoPrice(coinData.CoinData[i].Id,
+			coinData.CoinData[i].Properties,
+			db,
+		)
+	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
+	TxCommit(tx)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 
 }
 
@@ -443,11 +495,11 @@ func writeMap(slug string, logo string, id int64, db *sql.DB) {
 	Exec(stmt, slug, logo, fmt.Sprintf("%d", id))
 }
 
-func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, HDDSource bool) {
-	db := OpenDB(HDDSource)
+func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
+	db := OpenDB(DBSource)
 	tx := TxBegin(db)
 
-	CreateCryptoTable(HDDSource)
+	CreateCryptoTable(DBSource)
 
 	for i := 0; i < len(coinDataMap.CoinDataMap); i++ {
 		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
@@ -529,15 +581,21 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, HDDSource bool) {
 		//writeUrls(announcement, "announcement", coinDataMap.CoinDataMap[i].Id)
 		//fmt.Println(fmt.Sprintf("%v", res))
 	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
 	TxCommit(tx)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 
 }
 
-func WriteCryptosFullSQLDB(coinData CoinData, HDDSource bool) {
+func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 
-	db := OpenDB(HDDSource)
+	db := OpenDB(DBSource)
 	tx := TxBegin(db)
-	CreateCryptoTable(HDDSource)
+	CreateCryptoTable(DBSource)
 	//CreateCryptoTable()
 	fmt.Println("writing cryptos in database...")
 	for i := 0; i < len(coinData.CoinData); i++ {
@@ -629,6 +687,12 @@ func WriteCryptosFullSQLDB(coinData CoinData, HDDSource bool) {
 		//writeExplorer(explorer, coinDataMap.CoinDataMap[i].Id)
 		writeUrls(explorer, twitter, website, facebook, chat, messageBoard, technical, sourceCode, announcement, coinData.CoinData[i].Id, db)
 	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
 	TxCommit(tx)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 
 }

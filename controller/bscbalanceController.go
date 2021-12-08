@@ -26,7 +26,7 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 	var bscBalances Model.BSCBalances
 	var bscContracts Model.BSCContracts
 	//fmt.Println(nil)
-	bscContracts = Model.ReadBSCContractsQLDB(false)
+	bscContracts = Model.ReadBSCContractsQLDB("ram")
 	if (len(contractsString) > 0) && (len(submit) > 0) {
 		var bscContracts1 Model.BSCContracts
 		bscContracts1.Contracts = strings.Split(contractsString[0], "\n")
@@ -50,17 +50,17 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 				contractsString += ",\"" + bscBalances.Balances[i].Contract + "\""
 			}
 		}
-		coinData := Model.ReadBSCPricesFromBitQuery("0x55d398326f99059ff775485246999027b3197955", contractsString)
-		Model.WriteCryptosByBSCContract(coinData, false)
-		Model.WriteBSCBalancesSQLDB(bscBalances, false)
-		Model.WriteBSCContractsSQLDB(bscContracts, false)
+		//coinData := Model.ReadBSCPricesFromBitQuery("0x55d398326f99059ff775485246999027b3197955", contractsString)
+		//Model.WriteCryptosByBSCContract(coinData, "ram")
+		Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
+		Model.WriteBSCContractsSQLDB(bscContracts, "ram")
 		//bscContracts = Model.ReadBSCContractsQLDB()
 		//bscBalances = Model.ReadBSCBalancesSQLDB()
 		//bscContracts = Model.ReadBSCContractsQLDB()
 	}
 	for i := 0; i < len(bscBalances.Balances); i++ {
 		//fmt.Println("test")
-		bscBalances.Balances[i].CoinDatum = Model.ReadCryptoByBSCContractSQLDB(bscBalances.Balances[i].Contract, false)
+		bscBalances.Balances[i].CoinDatum = Model.ReadCryptoByBSCContractSQLDB(bscBalances.Balances[i].Contract, "ram")
 		bscBalances.Balances[i].USDConvert = bscBalances.Balances[i].Amount * bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price
 		//fmt.Println(bscBalances.Balances[i].CoinDatum.Name)
 		//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
@@ -76,5 +76,7 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//time.Sleep(20 * time.Second)
+	//fmt.Println("####################################### 20s after refresh")
 
 }

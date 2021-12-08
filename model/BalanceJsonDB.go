@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -275,26 +276,111 @@ func UpdateBSCPricesJsonFromBitQuery(contract string, contractString string, fil
 
 func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
 	for true {
-		UpdateBSCPricesJsonFromBitQuery("0x55d398326f99059ff775485246999027b3197955", "", "AutoBSCPrices.json")
-		if IsPriceJsonFromBitQueryValid("AutoBSCPrices.json") {
+		UpdateBSCPricesJsonFromBitQuery("0x55d398326f99059ff775485246999027b3197955", "", "AutoBSCPricesUSDT.json")
+		if IsPriceJsonFromBitQueryValid("AutoBSCPricesUSDT.json") {
 			fmt.Println("wait availability then copy")
-			jsonFile, err := os.Open("AutoBSCPrices.json")
+			jsonFile, err := os.Open("AutoBSCPricesUSDT.json")
 			// if we os.Open returns an error then handle it
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("Successfully Opened ", "AutoBSCPrices.json")
-			// defer the closing of our jsonFile so that we can parse it later on
-			defer jsonFile.Close()
+			fmt.Println("Successfully Opened ", "AutoBSCPricesUSDT.json")
+
 			// read our opened xmlFile as a byte array.
 			byteValue, _ := ioutil.ReadAll(jsonFile)
-
+			jsonFile.Close()
 			// write the whole body at once
-			err = ioutil.WriteFile("BSCPriceTemp.json", byteValue, 0644)
+			err = ioutil.WriteFile("BSCPriceTempUSDT.json", byteValue, 0644)
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println("Succefully written", "BSCPriceTemp.json")
+			fmt.Println("Succefully written", "BSCPriceTempUSDT.json")
+			var bitQueryResult BitQueryBSCQuoteResult
+			errJson := json.Unmarshal(byteValue, &bitQueryResult)
+			if errJson != nil {
+				fmt.Println("Failed to unmarshall json file")
+				log.Fatal(errJson)
+			}
+			var coinData1 CoinData
+			for i := 0; i < len(bitQueryResult.Data.Properties.API); i++ {
+				var coinDatum CoinDatum
+				coinDatum.BscContract = bitQueryResult.Data.Properties.API[i].Currency.Address
+				coinDatum.Properties.Dollar.Price = bitQueryResult.Data.Properties.API[i].Price
+				//fmt.Println("contract", coinDatum.BscContract)
+
+				//fmt.Println("coindata from bitquery coindata", fmt.Sprintf("%v", coinDatum))
+				coinData1.CoinData = append(coinData1.CoinData, coinDatum)
+
+			}
+			//CreateCryptoTable("ramprice")
+			coinData := ReadCryptosSQLDB("ram")
+			coinDataIndex := make(map[string]int64)
+			for i := 0; i < len(coinData.CoinData); i++ {
+				coinDataIndex[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i].Id
+			}
+			for i := 0; i < len(coinData1.CoinData); i++ {
+				coinData1.CoinData[i].Id = coinDataIndex[strings.ToLower(coinData1.CoinData[i].BscContract)]
+				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+			}
+			//WriteCryptosFullSQLDB(coinData, "ramprice")
+			////WriteCryptosByBSCContract(coinData1, "ramprice")
+			//coinData = ReadCryptosSQLDB("ramprice")
+			WriteCryptosPriceSQLDB(coinData, "ram")
+			fmt.Println("Refreshed prices from USDT")
+		}
+		UpdateBSCPricesJsonFromBitQuery("0x55d398326f99059ff775485246999027b3197955", "", "AutoBSCPricesBNB.json")
+		if IsPriceJsonFromBitQueryValid("AutoBSCPricesbnb.json") {
+			fmt.Println("wait availability then copy")
+			jsonFile, err := os.Open("AutoBSCPricesBNB.json")
+			// if we os.Open returns an error then handle it
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("Successfully Opened ", "AutoBSCPricesBNB.json")
+
+			// read our opened xmlFile as a byte array.
+			byteValue, _ := ioutil.ReadAll(jsonFile)
+			jsonFile.Close()
+			// write the whole body at once
+			err = ioutil.WriteFile("BSCPriceTempBNB.json", byteValue, 0644)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println("Succefully written", "BSCPriceTempBNB.json")
+			var bitQueryResult BitQueryBSCQuoteResult
+			errJson := json.Unmarshal(byteValue, &bitQueryResult)
+			if errJson != nil {
+				fmt.Println("Failed to unmarshall json file")
+				log.Fatal(errJson)
+			}
+			coinDatum1 := ReadCryptoByBSCContractSQLDB("0x55d398326f99059ff775485246999027b3197955", "ramprice")
+			var coinData1 CoinData
+			for i := 0; i < len(bitQueryResult.Data.Properties.API); i++ {
+				var coinDatum CoinDatum
+				coinDatum.BscContract = bitQueryResult.Data.Properties.API[i].Currency.Address
+				coinDatum.Properties.Dollar.Price = bitQueryResult.Data.Properties.API[i].Price * coinDatum1.Properties.Dollar.Price
+				//fmt.Println("contract", coinDatum.BscContract)
+
+				//fmt.Println("coindata from bitquery coindata", fmt.Sprintf("%v", coinDatum))
+				coinData1.CoinData = append(coinData1.CoinData, coinDatum)
+
+			}
+			//CreateCryptoTable("ramprice")
+			coinData := ReadCryptosSQLDB("ram")
+			coinDataIndex := make(map[string]int64)
+			for i := 0; i < len(coinData.CoinData); i++ {
+				coinDataIndex[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i].Id
+			}
+			for i := 0; i < len(coinData1.CoinData); i++ {
+				coinData1.CoinData[i].Id = coinDataIndex[strings.ToLower(coinData1.CoinData[i].BscContract)]
+				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+			}
+			//WriteCryptosFullSQLDB(coinData, "ramprice")
+			//WriteCryptosByBSCContract(coinData1, "ramprice")
+			//coinData = ReadCryptosSQLDB("ramprice")
+			WriteCryptosPriceSQLDB(coinData, "ram")
+			//fmt.Println(coinData)
+			fmt.Println("Refreshed prices from BNB")
 		}
 		time.Sleep(duration)
 	}

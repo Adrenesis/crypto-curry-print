@@ -182,7 +182,7 @@ func updateJson(from string, limit string, filename string) {
 	}
 }
 func UpdateMapJsons() {
-	coinData := ReadCryptosSQLDB(false)
+	coinData := ReadCryptosSQLDB("ram")
 	client := http.Client{}
 
 	apiKey := ReadApiKey(".env.json").CMCApiKey
@@ -238,7 +238,7 @@ func UpdateMapJsons() {
 }
 
 func UpdateMapJson() {
-	coinData := ReadCryptosSQLDB(false)
+	coinData := ReadCryptosSQLDB("ram")
 	client := http.Client{}
 
 	apiKey := ReadApiKey(".env.json").CMCApiKey

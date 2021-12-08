@@ -2,6 +2,7 @@
 
 {% block stylesheets %}
     <link href="http://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <!--    <script src="main.js"></script>-->
     <style>
         body{
@@ -31,7 +32,13 @@
                     Address
                 </th>
                 <th>
-                    Contract
+                    Scan
+                </th>
+                <th>
+                    0x
+                </th>
+                <th>
+                    DEX
                 </th>
                 <th>
                     Amount
@@ -50,14 +57,73 @@
             <td>
                 {{ balance.Address }}
             </td>
-            <td>
-                <a href="https://bscscan.com/token/{{ balance.Contract }}">{{ balance.Contract }}</a>
+            {% if coinDatum.BscScan != "<nil>" %}
+            <td><a href="{{ balance.CoinDatum.BscScan }}"><img src="https://bscscan.com//images/favicon.ico" width=25" height="25"/></a>
             </td>
             <td>
-                {{balance.Amount }}
+                <span style="font-size: 0 ;z-index:-1024; width: 0px; height: 0px; display: inline-block; opacity: 0;" id="{{ balance.CoinDatum.BscContract }}">{{ balance.CoinDatum.BscContract }}</span>
+                <a href="#" onclick="
+
+                    var str = document.getElementById('{{ balance.CoinDatum.BscContract }}');
+                    window.getSelection().selectAllChildren(str);
+                    document.execCommand('Copy')
+                    console.log(str)
+                    ">
+
+                    <i class="fas fa-copy" style="width: 25px; height= 25px"></i>
+                </a>
+
+            </td>
+            <!--                    "href="https://pancakeswap.finance/swap?inputCurrency=0x55d398326f99059ff775485246999027b3197955&outputCurrency={{ coinDatum.BscContract }}&exactField=input&exactAmount=1.00"-->
+            <td><a onclick="
+                        window.open('https://pancakeswap.finance/swap?inputCurrency={{ balance.CoinDatum.BscContract }}&outputCurrency=0x55d398326f99059ff775485246999027b3197955&exactField=output&exactAmount=1.00','popup','width=400,height=720,top=0,left=0','targetWindow',
+                                   `toolbar=no,
+                                    location=no,
+                                    status=no,
+                                    menubar=no,
+                                    scrollbars=yes,
+                                    resizable=yes,
+                                    width=400,
+                                    height=720`); return false;"
+                   href="https://pancakeswap.finance/swap?inputCurrency=0x55d398326f99059ff775485246999027b3197955&outputCurrency={{ coinDatum.BscContract }}&exactField=input&exactAmount=1.00"
+            >
+                <img src="https://pancakeswap.finance/favicon.ico" width=25" height="25"/>
+            </a></td>
+            {% else %}
+            <td></td>
+            <td></td>
+            {% endif %}
+            <td class="number-right">
+                {{balance.Amount|f4d }}
+            </td>
+            <td class="number-right">
+                {{ (balance.Amount * balance.CoinDatum.Properties.Dollar.Price)|f4d }}
             </td>
             <td>
-                {{balance.Amount * balance.CoinDatum.Properties.Dollar.Price }}
+                <a  onclick="
+                            event.stopPropagation();
+                            w = window.open('https://coinmarketcap.com/currencies/{{ coinDatum.Slug }}','cmcWindow',`width=1520,height=1080,left=400,top=0,
+                                        toolbar=no,
+                                        location=no,
+                                        status=no,
+                                        menubar=no,
+                                        scrollbars=yes,
+                                        resizable=yes`);
+                             // w[w.addEventListener ? 'addEventListener' : 'attachEvent'](
+                             //    (w.attachEvent ? 'on' : '') + 'load', function (e) {
+                             //            console.log('hello');
+                             //            w.scroll(0, 1500);
+                             //        }, false);
+
+                                setTimeout(() => {
+                                    console.log('hello');
+                                    w.scroll(0, 1500);
+                                    }, 3500);
+                                return false;"
+                    href="https://coinmarketcap.com/currencies/{{ coinDatum.Slug }}"
+                >
+                    <img style="background-color: white" src="https://coinmarketcap.com//favicon.ico" width=25" height="25"/>
+                </a>
             </td>
         </tr>
         {% endfor %}

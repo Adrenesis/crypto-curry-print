@@ -8,12 +8,12 @@ import (
 	//"time"
 )
 
-func ReadBSCContractsQLDB(HDDSource bool) BSCContracts {
+func ReadBSCContractsQLDB(DBSource string) BSCContracts {
 	fmt.Println("reading database...")
 
 	var err error
-	CreateBSCContractsTable(HDDSource)
-	db := OpenDB(HDDSource)
+	CreateBSCContractsTable(DBSource)
+	db := OpenDB(DBSource)
 	//time.Sleep(2 * time.Second)
 	rows, err := db.Query("select * from bsccontracts;")
 	if err != nil {
@@ -37,8 +37,8 @@ func ReadBSCContractsQLDB(HDDSource bool) BSCContracts {
 	return bscContracts
 }
 
-func CreateBSCContractsTable(HDDSource bool) {
-	db := OpenDB(HDDSource)
+func CreateBSCContractsTable(DBSource string) {
+	db := OpenDB(DBSource)
 	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
@@ -52,12 +52,12 @@ func writeBSCContract(contract string, db *sql.DB) {
 	ExecIgnoreDuplicate(stmt, contract)
 
 }
-func WriteBSCContractsSQLDB(bscContracts BSCContracts, HDDSource bool) {
+func WriteBSCContractsSQLDB(bscContracts BSCContracts, DBSource string) {
 
 	fmt.Println("writing bsc contracts....")
 
-	CreateBSCContractsTable(HDDSource)
-	db := OpenDB(HDDSource)
+	CreateBSCContractsTable(DBSource)
+	db := OpenDB(DBSource)
 	for i := 0; i < len(bscContracts.Contracts); i++ {
 		stmt := Prepare("INSERT INTO bsccontracts (contract) VALUES(?);", db)
 		ExecIgnoreDuplicate(stmt, bscContracts.Contracts[i])

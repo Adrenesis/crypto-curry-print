@@ -8,11 +8,11 @@ import (
 	//"time"
 )
 
-func ReadBSCBalanceSQLDB(address string, contract string, HDDSource bool) BSCBalance {
+func ReadBSCBalanceSQLDB(address string, contract string, DBSource string) BSCBalance {
 	fmt.Println("reading database...")
 
-	CreateBSCBalancesTable(HDDSource)
-	db := OpenDB(HDDSource)
+	CreateBSCBalancesTable(DBSource)
+	db := OpenDB(DBSource)
 	var err error
 	rows, err := db.Query("select address, contract, balance from bscbalances where address = ? AND contract = ?;", address, contract)
 	if err != nil {
@@ -43,11 +43,11 @@ func ReadBSCBalanceSQLDB(address string, contract string, HDDSource bool) BSCBal
 	return bscBalance
 }
 
-func ReadBSCBalancesSQLDB(HDDSource bool) BSCBalances {
+func ReadBSCBalancesSQLDB(DBSource string) BSCBalances {
 	fmt.Println("reading database...")
 
-	CreateBSCBalancesTable(HDDSource)
-	db := OpenDB(HDDSource)
+	CreateBSCBalancesTable(DBSource)
+	db := OpenDB(DBSource)
 	var err error
 	rows, err := db.Query("select address, contract, balance from bscbalances;")
 	if err != nil {
@@ -83,8 +83,8 @@ func ReadBSCBalancesSQLDB(HDDSource bool) BSCBalances {
 	return bscBalances
 }
 
-func CreateBSCBalancesTable(HDDSource bool) {
-	db := OpenDB(HDDSource)
+func CreateBSCBalancesTable(DBSource string) {
+	db := OpenDB(DBSource)
 	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
@@ -99,9 +99,9 @@ func writeBSCBalance(address string, contract string, balance float64, db *sql.D
 	ExecIgnoreDuplicate(stmt, address, contract, balance)
 
 }
-func WriteBSCBalancesSQLDB(bscBalances BSCBalances, HDDSource bool) {
-	CreateBSCBalancesTable(HDDSource)
-	db := OpenDB(HDDSource)
+func WriteBSCBalancesSQLDB(bscBalances BSCBalances, DBSource string) {
+	CreateBSCBalancesTable(DBSource)
+	db := OpenDB(DBSource)
 	tx := TxBegin(db)
 
 	for i := 0; i < len(bscBalances.Balances); i++ {
@@ -112,7 +112,14 @@ func WriteBSCBalancesSQLDB(bscBalances BSCBalances, HDDSource bool) {
 			bscBalances.Balances[i].Amount,
 			db)
 	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
 	TxCommit(tx)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
+
 	CloseDB(db)
 
 }

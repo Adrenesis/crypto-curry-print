@@ -16,6 +16,11 @@ func GetEnv() *stick.Env {
 		// Do some formatting.
 		return fmt.Sprintf("%.1f", v) + "%"
 	}
+	env.Filters["f4d"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
+		v := stick.CoerceNumber(val)
+		// Do some formatting.
+		return fmt.Sprintf("%.4f", v)
+	}
 	env.Filters["number_format"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) stick.Value {
 		v := stick.CoerceNumber(val)
 		// Do some formatting.

@@ -6,6 +6,7 @@ import (
 	"log"
 	_ "modernc.org/sqlite"
 	"strings"
+	"sync"
 	"time"
 	//"time"
 )
@@ -19,13 +20,14 @@ func CloseDB(db *sql.DB) {
 }
 
 var (
-	DB      *sql.DB
-	DBhdd   *sql.DB
-	DBAlt   = false
-	DBReady = false
+	DB       *sql.DB
+	DBhdd    *sql.DB
+	DBprice  *sql.DB
+	DBReady  = false
+	RamMutex sync.Mutex
 )
 
-func OpenDB(HDDSource bool) *sql.DB {
+func OpenDB(DBSource string) *sql.DB {
 	var err error
 	if !DBReady {
 		fmt.Println("CREATING DB ########################################")
@@ -33,6 +35,7 @@ func OpenDB(HDDSource bool) *sql.DB {
 		var dbhdd *sql.DB
 
 		db, err = sql.Open("sqlite", "file::memory:?cache=shared")
+		DBprice, err = sql.Open("sqlite", "file::memory:?cache=shared")
 		DB = db
 		DBReady = true
 		dbhdd, err = sql.Open("sqlite", "./cryptoDB.db")
@@ -54,8 +57,10 @@ func OpenDB(HDDSource bool) *sql.DB {
 	}
 	//fmt.Println("HDD DB ASKED", DBAlt)
 	//fmt.Println("DB IN MEMORY", fmt.Sprintf("%v", &DB))
-	if HDDSource {
+	if DBSource == "hdd" {
 		return DBhdd
+	} else if DBSource == "ramprice" {
+		return DBprice
 	}
 	return DB
 }
@@ -122,30 +127,27 @@ func SerializeStringList(input []string) string {
 
 func LaunchSaveDeamon(duration time.Duration) {
 	for true {
-		SaveHDDSourceEvery(duration)
+		SaveDBSourceEvery(duration)
 	}
 }
 
-func SaveHDDSourceEvery(duration time.Duration) {
+func SaveDBSourceEvery(duration time.Duration) {
 	time.Sleep(duration)
-	SaveHDDSource()
+	SaveDBSource()
 }
 
-func SaveHDDSource() {
+func SaveDBSource() {
 	fmt.Println("saving.... don't touch anything...")
-	DBAlt = false
-	cData := ReadCryptosSQLDB(false)
-	bscBalances := ReadBSCBalancesSQLDB(false)
-	bscContracts := ReadBSCContractsQLDB(false)
+	cData := ReadCryptosSQLDB("ram")
+	bscBalances := ReadBSCBalancesSQLDB("ram")
+	bscContracts := ReadBSCContractsQLDB("ram")
 	fmt.Println(fmt.Sprintf("%v", cData))
-	DBAlt = true
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
-	WriteCryptosFullSQLDB(cData, true)
+	WriteCryptosFullSQLDB(cData, "hdd")
 	//cData = Model.ReadCryptosSQLDB()
 	//fmt.Println(fmt.Sprintf("%v", cData))
-	WriteBSCContractsSQLDB(bscContracts, true)
-	WriteBSCBalancesSQLDB(bscBalances, true)
-	DBAlt = false
+	WriteBSCContractsSQLDB(bscContracts, "hdd")
+	WriteBSCBalancesSQLDB(bscBalances, "hdd")
 	fmt.Println("saved")
 }

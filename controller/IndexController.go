@@ -16,29 +16,27 @@ var cData Model.CoinData
 
 func InitDB() {
 	DBinited = true
-	Model.DBAlt = true
-	Model.CreateBSCBalancesTable(true)
-	Model.CreateBSCContractsTable(true)
-	Model.CreateCryptoTable(true)
-	Model.CreateBSCBalancesTable(false)
-	Model.CreateBSCContractsTable(false)
-	Model.CreateCryptoTable(false)
-	cData = Model.ReadCryptosSQLDB(true)
-	bscBalances := Model.ReadBSCBalancesSQLDB(true)
-	bscContracts := Model.ReadBSCContractsQLDB(true)
+	Model.CreateBSCBalancesTable("hdd")
+	Model.CreateBSCContractsTable("hdd")
+	Model.CreateCryptoTable("hdd")
+	Model.CreateBSCBalancesTable("ram")
+	Model.CreateBSCContractsTable("ram")
+	Model.CreateCryptoTable("ram")
+	cData = Model.ReadCryptosSQLDB("hdd")
+	bscBalances := Model.ReadBSCBalancesSQLDB("hdd")
+	bscContracts := Model.ReadBSCContractsQLDB("hdd")
 	//fmt.Println(fmt.Sprintf("%v", cData))
-	Model.DBAlt = false
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
-	Model.WriteCryptosFullSQLDB(cData, false)
+	Model.WriteCryptosFullSQLDB(cData, "ram")
 	//var cd Model.CoinData
 	//cd = Model.ReadCryptosSQLDB(false)
 	//fmt.Println(fmt.Sprintf("%v", cd))
 	//fmt.Println("This is from RAM")
 	//cData = Model.ReadCryptosSQLDB()
 	//fmt.Println(fmt.Sprintf("%v", cData))
-	Model.WriteBSCContractsSQLDB(bscContracts, false)
-	Model.WriteBSCBalancesSQLDB(bscBalances, false)
+	Model.WriteBSCContractsSQLDB(bscContracts, "ram")
+	Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
 }
 
 func sortVolumeDecrease(data Model.CoinData) {
@@ -86,18 +84,18 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
 			Model.UpdateJsons(false)
-			coinData = Model.ReadCryptosSQLDB(false)
+			coinData = Model.ReadCryptosSQLDB("ram")
 			coinData1 = Model.ReadJson("cmcdb200.json")
 			for i := 0; i < len(coinData1.CoinData); i++ {
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			}
-			Model.WriteCryptosSQLDB(coinData, false)
+			Model.WriteCryptosSQLDB(coinData, "ram")
 			Model.UpdateMapJson()
 			var coinDataMap Model.CoinDataMap
 			coinDataMap = Model.ReadMapJson200()
-			Model.WriteCryptosMapSQLDB(coinDataMap, false)
+			Model.WriteCryptosMapSQLDB(coinDataMap, "ram")
 		}
-		coinData = Model.ReadCryptosSQLDB(false)
+		coinData = Model.ReadCryptosSQLDB("ram")
 	} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
 
 		fmt.Println("getting all cryptocurrencies...")
@@ -109,21 +107,21 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			}
 		}
-		Model.WriteCryptosSQLDB(coinData, false)
-		coinData = Model.ReadCryptosSQLDB(false)
+		Model.WriteCryptosSQLDB(coinData, "ram")
+		coinData = Model.ReadCryptosSQLDB("ram")
 	} else if (len(refreshMap) > 0) && (len(confirm) > 0) {
 
 		fmt.Println("getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
 			Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
-			Model.WriteCryptosMapSQLDB(coinDataMap, false)
+			Model.WriteCryptosMapSQLDB(coinDataMap, "ram")
 			//coinData = Model.ReadJson("cmcdb0.json")
 			//coinData1 = Model.ReadJson("cmcdb1.json")
 			//for i := 0; i < len(coinData1.CoinData); i++ {
 			//	coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 			//}
-			coinData = Model.ReadCryptosSQLDB(false)
+			coinData = Model.ReadCryptosSQLDB("ram")
 		}
 		//Model.WriteCryptosSQLDB(coinData)
 	} else {
@@ -135,7 +133,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		//}
 		//Model.WriteCryptosSQLDB(coinData)
 
-		coinData = Model.ReadCryptosSQLDB(false)
+		coinData = Model.ReadCryptosSQLDB("ram")
 	}
 	//for i := 0; i < len(coinData.CoinData); i++ {
 	//	fmt.Println("Name: ", coinData.CoinData[i].Name)
