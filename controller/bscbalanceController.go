@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"fmt"
 	Model "github.com/Adrenesis/crypto-curry-print/model"
 	View "github.com/Adrenesis/crypto-curry-print/view"
 	"github.com/tyler-sommer/stick"
 	"log"
 	"net/http"
 	"sort"
-	"strings"
 )
 
 func sortBSCbalancesPriceDecrease(data Model.BSCBalances) {
@@ -17,7 +17,7 @@ func sortBSCbalancesPriceDecrease(data Model.BSCBalances) {
 }
 
 func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
-	contractsString := r.URL.Query()["contracts"]
+	addressParam := r.URL.Query()["address"]
 	submit := r.URL.Query()["submit"]
 	//submit := r.URL.Query()["refresh"]
 	//fmt.Println(contractsString)
@@ -25,38 +25,48 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println("refresh", refreshAll)
 	var bscBalances Model.BSCBalances
 	var bscContracts Model.BSCContracts
+	var addresses Model.BSCaddresses
+	var addresses1 Model.BSCaddresses
 	//fmt.Println(nil)
 	bscContracts = Model.ReadBSCContractsQLDB("ram")
-	if (len(contractsString) > 0) && (len(submit) > 0) {
-		var bscContracts1 Model.BSCContracts
-		bscContracts1.Contracts = strings.Split(contractsString[0], "\n")
-		for i := 0; i < len(bscContracts1.Contracts); i++ {
-
-			bscContracts.Contracts = append(bscContracts.Contracts, bscContracts1.Contracts[i])
-			//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum))
+	if (len(addressParam) > 0) && (len(submit) > 0) {
+		fmt.Println(addressParam[0])
+		if addressParam[0] != "" {
+			addresses1.Addresses = append(addresses1.Addresses, addressParam[0])
 		}
+
+		//var bscContracts1 Model.BSCContracts
+		//bscContracts1.Contracts = strings.Split(contractsString[0], "\n")
+		//for i := 0; i < len(bscContracts1.Contracts); i++ {
+		//
+		//	bscContracts.Contracts = append(bscContracts.Contracts, bscContracts1.Contracts[i])
+		//	//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum))
+		//}
 		//bscBalances1 := Model.ReadBSCBalancesFromBSCScan(bscContracts)
 		//for i := 0; i < len(bscBalances1.Balances); i++ {
 		//
 		//	bscBalances.Balances = append(bscBalances.Balances, bscBalances1.Balances[i])
 		//	//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum))
 		//}
-		bscBalances = Model.ReadBSCBalancesFromUnmarshal("0xDDd0933873b580313Beb493020F9f72DDA03c9Cb")
-		contractsString := ""
-		for i := 0; i < len(bscBalances.Balances); i++ {
-			if i == 0 {
-				contractsString = "\"" + bscBalances.Balances[i].Contract + "\""
-			} else {
-				contractsString += ",\"" + bscBalances.Balances[i].Contract + "\""
-			}
-		}
-		//coinData := Model.ReadBSCPricesFromBitQuery("0x55d398326f99059ff775485246999027b3197955", contractsString)
-		//Model.WriteCryptosByBSCContract(coinData, "ram")
-		Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
-		Model.WriteBSCContractsSQLDB(bscContracts, "ram")
+
 		//bscContracts = Model.ReadBSCContractsQLDB()
 		//bscBalances = Model.ReadBSCBalancesSQLDB()
 		//bscContracts = Model.ReadBSCContractsQLDB()
+	}
+	Model.CreateBSCaddressesTable("hdd")
+	Model.CreateBSCaddressesTable("ram")
+	Model.WriteBSCaddressesSQLDB(addresses1, "ram")
+	addresses = Model.ReadBSCaddressesSQLDB("ram")
+	fmt.Println(fmt.Sprintf("%v", addresses))
+	//for i := 0; i<len(addresses1.Addresses); i++ {
+	//	addresses.Addresses = append(addresses.Addresses, addresses1.Addresses[i])
+	//}
+
+	for j := 0; j < len(addresses.Addresses); j++ {
+		bscBalances1 := Model.ReadBSCBalancesFromUnmarshal(addresses.Addresses[j])
+		for i := 0; i < len(bscBalances1.Balances); i++ {
+			bscBalances.Balances = append(bscBalances.Balances, bscBalances1.Balances[i])
+		}
 	}
 	for i := 0; i < len(bscBalances.Balances); i++ {
 		//fmt.Println("test")
@@ -66,6 +76,18 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 		//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
 		//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))
 	}
+	//contractsString = ""
+	//for i := 0; i < len(bscBalances.Balances); i++ {
+	//	if i == 0 {
+	//		contractsString = "\"" + bscBalances.Balances[i].Contract + "\""
+	//	} else {
+	//		contractsString += ",\"" + bscBalances.Balances[i].Contract + "\""
+	//	}
+	//}
+	//coinData := Model.ReadBSCPricesFromBitQuery("0x55d398326f99059ff775485246999027b3197955", contractsString)
+	//Model.WriteCryptosByBSCContract(coinData, "ram")
+	Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
+	//Model.WriteBSCContractsSQLDB(bscContracts, "ram")
 	sortBSCbalancesPriceDecrease(bscBalances)
 	//fmt.Println(fmt.Sprintf("%v", bscBalances.Balances[0].CoinDatum))
 	env := View.GetEnv()

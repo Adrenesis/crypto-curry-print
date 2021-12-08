@@ -74,6 +74,9 @@
         .confirm {
             font-size: small;
         }
+        .wallet-button {
+            display: block;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -96,7 +99,7 @@
         <input type="submit" value="3(repeat).GET last 200 (3cr)" name="refresh">
         <!-- Rounded switch -->
         <br>
-        <div style="width: 100%">
+        <div style="width: 100%;">
             <div style="margin-left: auto; margin-right: 0;">
                 <label class="confirm">
                     <input type="checkbox" name="confirm" id="confirm">
@@ -104,7 +107,15 @@
                 </label>
             </div>
 
+
+
+            <label style="right:0; text-align: right;" class="wallet-button">
+                <a href="/bscbalances" type="button" id="wallet-button">
+                    View wallet
+                </a>
+            </label>
         </div>
+
     </form>
 <!--    <div class="cmc-viewer" >-->
 <!--        <iframe class="cmc-viewer" src="https://pancakeswap.finance/swap?inputCurrency=0x55d398326f99059ff775485246999027b3197955&outputCurrency=0x749f031FDa3a4904b026f2275A697096492a129d&exactField=input&exactAmount=1.00" title="description"></iframe>-->

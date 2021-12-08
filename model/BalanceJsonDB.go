@@ -470,7 +470,6 @@ func ReadUnmarshalResultJson(address string, filename string) BSCBalances {
 	errJson := json.Unmarshal(byteValue, &unmarshalResult)
 	if errJson != nil {
 		fmt.Println("Failed to unmarshall json file")
-		log.Fatal(errJson)
 	}
 	var bscBalances BSCBalances
 	//fmt.Println("unmarshal result", fmt.Sprintf("%v", unmarshalResult))
@@ -506,6 +505,16 @@ func UpdateJsonFromUnmarshal(address string, filename string) {
 		// You may read / inspect response body
 		return
 	} else {
+		// we initialize our Users array
+		var unmarshalResult UnmarshalBSCBalanceResult
+
+		errJson := json.Unmarshal(bodyBytes, &unmarshalResult)
+		if errJson != nil {
+			fmt.Println("Failed to unmarshall json file")
+			//log.Fatal(errJson)
+
+			return
+		}
 		// write the whole body at once
 		err = ioutil.WriteFile(filename, bodyBytes, 0644)
 		//fmt.Println(fmt.Sprintf("%v", bodyBytes))

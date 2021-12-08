@@ -141,6 +141,7 @@ func SaveDBSource() {
 	cData := ReadCryptosSQLDB("ram")
 	bscBalances := ReadBSCBalancesSQLDB("ram")
 	bscContracts := ReadBSCContractsQLDB("ram")
+	bscAdresses := ReadBSCaddressesSQLDB("ram")
 	fmt.Println(fmt.Sprintf("%v", cData))
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
@@ -148,6 +149,7 @@ func SaveDBSource() {
 	//cData = Model.ReadCryptosSQLDB()
 	//fmt.Println(fmt.Sprintf("%v", cData))
 	WriteBSCContractsSQLDB(bscContracts, "hdd")
+	WriteBSCaddressesSQLDB(bscAdresses, "hdd")
 	WriteBSCBalancesSQLDB(bscBalances, "hdd")
 	fmt.Println("saved")
 }
