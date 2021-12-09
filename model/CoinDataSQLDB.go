@@ -109,7 +109,7 @@ func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
 	}
 
 	//fmt.Println(fmt.Sprintf("%v", coinData))
-
+	rows.Close()
 	CloseDB(db)
 	return coinDatum
 }
@@ -211,7 +211,7 @@ func ReadCryptoByBSCContractSQLDB(contract string, DBSource string) CoinDatum {
 	}
 
 	//fmt.Println(fmt.Sprintf("%v", coinData))
-
+	rows.Close()
 	//CloseDB(db)
 	return coinDatum
 }
@@ -318,13 +318,14 @@ func ReadCryptosSQLDB(DBSource string) CoinData {
 	}
 
 	//fmt.Println(fmt.Sprintf("%v", coinData))
-
+	rows.Close()
 	//CloseDB(db)
 	return coinData
 }
 
 func CreateCryptoTable(DBSource string) {
 	db := OpenDB(DBSource)
+	tx := TxBegin(db)
 	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
@@ -333,14 +334,15 @@ create table if not exists cryptos(id INTEGER PRIMARY KEY AUTOINCREMENT, name VA
 	`); err != nil {
 		log.Fatal(err)
 	}
-	//TxCommit(tx)
+	TxCommit(tx)
+	tx.Rollback()
 	//time.Sleep(10 * time.Second)
 	rows, err := db.Query("SELECT seq FROM sqlite_sequence WHERE name = 'cryptos'")
 	rows.Next()
 	var seq int64
 	rows.Scan(&seq)
 	rows.Close()
-	fmt.Println(seq)
+	//fmt.Println(seq)
 	if seq < 1000000 {
 		//time.Sleep(10 * time.Second)
 		if _, err = db.Exec(`
@@ -351,14 +353,23 @@ WHERE name = 'cryptos';`); err != nil {
 			log.Fatal(err)
 		}
 	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
+	//TxCommit(tx)
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 }
 func writeCrypto(id int64, name string, symbol string, dateAdded string, properties Property, tags []string, maxSupply float64, circulatingSupply float64, db *sql.DB) {
 
 	stmt := Prepare("INSERT INTO cryptos (id, name, symbol, date_added, tag, max_supply, circulating_supply, price, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", db)
 	tagString := SerializeStringList(tags)
 	ExecIgnoreDuplicate(stmt, id, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice)
+	stmt.Close()
 	stmt = Prepare("UPDATE cryptos SET name = ?, symbol = ?, date_added = ?, tag = ?, max_supply = ?, circulating_supply = ?, price = ?, vol24 = ?, volchange24 = ?, percentchange24 = ?, percentchange7d = ?, percentchange30d = ?, percentchange60d = ?, percentchange90d = ?, market_cap = ?, market_cap_dominance = ?, fully_diluted_market_cap = ? WHERE id = ?;", db)
 	Exec(stmt, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, id)
+	stmt.Close()
 }
 func writeCryptoPrice(id int64, properties Property, db *sql.DB) {
 
@@ -367,12 +378,14 @@ func writeCryptoPrice(id int64, properties Property, db *sql.DB) {
 	//ExecIgnoreDuplicate(stmt, id, properties.Dollar.Price)
 	stmt := Prepare("UPDATE cryptos SET price = ? WHERE id = ?;", db)
 	Exec(stmt, properties.Dollar.Price, id)
+	stmt.Close()
 }
 
 func writeCryptoByBSCContract(price float64, contract string, db *sql.DB) {
 	//fmt.Println(contract)
 	stmt := Prepare("UPDATE cryptos SET price = ? WHERE UPPER(bsccontract) LIKE UPPER('"+contract+"');", db)
 	Exec(stmt, price)
+	stmt.Close()
 }
 
 func WriteCryptosByBSCContract(data CoinData, DBSource string) {
@@ -430,6 +443,7 @@ func WriteCryptosSQLDB(coinData CoinData, DBSource string) {
 		RamMutex.Lock()
 	}
 	TxCommit(tx)
+	tx.Rollback()
 	if DBSource == "ram" {
 		RamMutex.Unlock()
 	}
@@ -437,9 +451,9 @@ func WriteCryptosSQLDB(coinData CoinData, DBSource string) {
 }
 func WriteCryptosPriceSQLDB(coinData CoinData, DBSource string) {
 
+	CreateCryptoTable(DBSource)
 	db := OpenDB(DBSource)
 	tx := TxBegin(db)
-	CreateCryptoTable(DBSource)
 	//CreateCryptoTable()
 	fmt.Println("writing cryptos in database...")
 	for i := 0; i < len(coinData.CoinData); i++ {
@@ -459,6 +473,7 @@ func WriteCryptosPriceSQLDB(coinData CoinData, DBSource string) {
 		RamMutex.Lock()
 	}
 	TxCommit(tx)
+	tx.Rollback()
 	if DBSource == "ram" {
 		RamMutex.Unlock()
 	}
@@ -468,31 +483,39 @@ func WriteCryptosPriceSQLDB(coinData CoinData, DBSource string) {
 func writeUrls(explorer string, twitter string, website string, facebook string, chat string, messageBoard string, technical string, sourceCode string, announcement string, id int64, db *sql.DB) {
 	stmt := Prepare("UPDATE cryptos SET explorer =?, twitter = ?, website = ?, facebook = ?, chat = ?, message_board = ?, technical = ?, source_code = ?, announcement = ? WHERE id = ?;", db)
 	Exec(stmt, explorer, twitter, website, facebook, chat, messageBoard, technical, sourceCode, announcement, fmt.Sprintf("%d", id))
+	stmt.Close()
 }
 
 func writeExplorer(explorer string, id int64, db *sql.DB) {
 	stmt := Prepare("UPDATE cryptos SET explorer = ? WHERE id = ?;", db)
 	Exec(stmt, explorer, fmt.Sprintf("%d", id))
+	stmt.Close()
+
 }
 
 func writeBscScan(bscScan string, bscContract string, id int64, db *sql.DB) {
 	stmt := Prepare("UPDATE cryptos SET bscscan = ?, bsccontract = ? WHERE id = ?;", db)
 	Exec(stmt, bscScan, bscContract, fmt.Sprintf("%d", id))
+	stmt.Close()
+
 }
 
 func writeEthScan(ethScan string, ethContract string, id int64, db *sql.DB) {
 	stmt := Prepare("UPDATE cryptos SET ethscan = ?, ethcontract = ? WHERE id = ?;", db)
 	Exec(stmt, ethScan, ethContract, fmt.Sprintf("%d", id))
+	stmt.Close()
 }
 
 func writeXrpScan(xrpScan string, xrpContract string, id int64, db *sql.DB) {
 	stmt := Prepare("UPDATE cryptos SET xrpscan = ?, xrpcontract = ? WHERE id = ?;", db)
 	Exec(stmt, xrpScan, xrpContract, fmt.Sprintf("%d", id))
+	stmt.Close()
 }
 
 func writeMap(slug string, logo string, id int64, db *sql.DB) {
 	stmt := Prepare("UPDATE cryptos SET slug = ?, logo = ? WHERE id = ?;", db)
 	Exec(stmt, slug, logo, fmt.Sprintf("%d", id))
+	stmt.Close()
 }
 
 func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
@@ -585,6 +608,7 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
 		RamMutex.Lock()
 	}
 	TxCommit(tx)
+	tx.Rollback()
 	if DBSource == "ram" {
 		RamMutex.Unlock()
 	}
@@ -691,6 +715,7 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 		RamMutex.Lock()
 	}
 	TxCommit(tx)
+	tx.Rollback()
 	if DBSource == "ram" {
 		RamMutex.Unlock()
 	}

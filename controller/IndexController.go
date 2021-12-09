@@ -19,12 +19,15 @@ func InitDB() {
 	Model.CreateBSCBalancesTable("hdd")
 	Model.CreateBSCContractsTable("hdd")
 	Model.CreateCryptoTable("hdd")
+	Model.CreateBSCaddressesTable("hdd")
 	Model.CreateBSCBalancesTable("ram")
 	Model.CreateBSCContractsTable("ram")
+	Model.CreateBSCaddressesTable("ram")
 	Model.CreateCryptoTable("ram")
 	cData = Model.ReadCryptosSQLDB("hdd")
 	bscBalances := Model.ReadBSCBalancesSQLDB("hdd")
 	bscContracts := Model.ReadBSCContractsQLDB("hdd")
+	bscAddresses := Model.ReadBSCaddressesSQLDB("hdd")
 	//fmt.Println(fmt.Sprintf("%v", cData))
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
@@ -37,6 +40,7 @@ func InitDB() {
 	//fmt.Println(fmt.Sprintf("%v", cData))
 	Model.WriteBSCContractsSQLDB(bscContracts, "ram")
 	Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
+	Model.WriteBSCaddressesSQLDB(bscAddresses, "ram")
 }
 
 func sortVolumeDecrease(data Model.CoinData) {

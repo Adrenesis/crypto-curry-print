@@ -353,7 +353,7 @@ func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
 				fmt.Println("Failed to unmarshall json file")
 				log.Fatal(errJson)
 			}
-			coinDatum1 := ReadCryptoByBSCContractSQLDB("0x55d398326f99059ff775485246999027b3197955", "ramprice")
+			coinDatum1 := ReadCryptoByBSCContractSQLDB("0x55d398326f99059ff775485246999027b3197955", "ramp")
 			var coinData1 CoinData
 			for i := 0; i < len(bitQueryResult.Data.Properties.API); i++ {
 				var coinDatum CoinDatum

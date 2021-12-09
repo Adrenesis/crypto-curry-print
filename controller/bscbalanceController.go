@@ -53,9 +53,9 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 		//bscBalances = Model.ReadBSCBalancesSQLDB()
 		//bscContracts = Model.ReadBSCContractsQLDB()
 	}
-	Model.CreateBSCaddressesTable("hdd")
-	Model.CreateBSCaddressesTable("ram")
+	//Model.RamMutex.Lock()
 	Model.WriteBSCaddressesSQLDB(addresses1, "ram")
+	//Model.RamMutex.Unlock()
 	addresses = Model.ReadBSCaddressesSQLDB("ram")
 	fmt.Println(fmt.Sprintf("%v", addresses))
 	//for i := 0; i<len(addresses1.Addresses); i++ {
@@ -86,6 +86,7 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 	//}
 	//coinData := Model.ReadBSCPricesFromBitQuery("0x55d398326f99059ff775485246999027b3197955", contractsString)
 	//Model.WriteCryptosByBSCContract(coinData, "ram")
+
 	Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
 	//Model.WriteBSCContractsSQLDB(bscContracts, "ram")
 	sortBSCbalancesPriceDecrease(bscBalances)

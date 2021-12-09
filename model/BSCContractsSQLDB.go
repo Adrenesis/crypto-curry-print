@@ -33,12 +33,14 @@ func ReadBSCContractsQLDB(DBSource string) BSCContracts {
 		log.Fatal(err)
 	}
 
+	rows.Close()
 	//CloseDB(db)
 	return bscContracts
 }
 
 func CreateBSCContractsTable(DBSource string) {
 	db := OpenDB(DBSource)
+	tx := TxBegin(db)
 	var err error
 	if _, err = db.Exec(`
 -- drop table if exists cryptos;
@@ -46,10 +48,19 @@ create table if not exists bsccontracts (contract VARCHAR, PRIMARY KEY(contract)
 	`); err != nil {
 		log.Fatal(err)
 	}
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
+	TxCommit(tx)
+	tx.Rollback()
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 }
 func writeBSCContract(contract string, db *sql.DB) {
 	stmt := Prepare("INSERT INTO bsccontracts (contract) VALUES(?);", db)
 	ExecIgnoreDuplicate(stmt, contract)
+	stmt.Close()
 
 }
 func WriteBSCContractsSQLDB(bscContracts BSCContracts, DBSource string) {
@@ -58,11 +69,20 @@ func WriteBSCContractsSQLDB(bscContracts BSCContracts, DBSource string) {
 
 	CreateBSCContractsTable(DBSource)
 	db := OpenDB(DBSource)
+	tx := TxBegin(db)
 	for i := 0; i < len(bscContracts.Contracts); i++ {
 		stmt := Prepare("INSERT INTO bsccontracts (contract) VALUES(?);", db)
 		ExecIgnoreDuplicate(stmt, bscContracts.Contracts[i])
+		stmt.Close()
 		//writeBSCContract(bscContracts.Contracts[i])
 	}
-	CloseDB(db)
+	if DBSource == "ram" {
+		RamMutex.Lock()
+	}
+	TxCommit(tx)
+	tx.Rollback()
+	if DBSource == "ram" {
+		RamMutex.Unlock()
+	}
 
 }

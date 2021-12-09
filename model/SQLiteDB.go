@@ -41,7 +41,7 @@ func OpenDB(DBSource string) *sql.DB {
 		dbhdd, err = sql.Open("sqlite", "./cryptoDB.db")
 		DBhdd = dbhdd
 		DBReady = true
-		go LaunchSaveDeamon(300 * time.Second)
+		go LaunchSaveDeamon(20 * time.Second)
 		go RewriteJsonPricesFromBitQueryEvery(20 * time.Second)
 	} else {
 		//DB.Close()
