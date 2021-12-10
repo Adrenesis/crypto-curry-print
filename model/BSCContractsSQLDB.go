@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	_ "modernc.org/sqlite"
+	"time"
 	//"time"
 )
 
 func ReadBSCContractsQLDB(DBSource string) BSCContracts {
-	fmt.Println("reading database...")
+	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 
 	var err error
 	CreateBSCContractsTable(DBSource)
@@ -65,7 +66,7 @@ func writeBSCContract(contract string, db *sql.DB) {
 }
 func WriteBSCContractsSQLDB(bscContracts BSCContracts, DBSource string) {
 
-	fmt.Println("writing bsc contracts....")
+	fmt.Println(ConvertToISO8601(time.Now()), "writing bsc contracts....")
 
 	CreateBSCContractsTable(DBSource)
 	db := OpenDB(DBSource)

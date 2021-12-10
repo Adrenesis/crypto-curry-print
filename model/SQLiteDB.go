@@ -11,6 +11,15 @@ import (
 	//"time"
 )
 
+func ConvertToISO8601(input time.Time) string {
+	timeString := fmt.Sprintf("%s", input)
+	timeString = timeString[:23]
+	timeString += "Z"
+	timeString = strings.Replace(timeString, " ", "T", -1)
+	return timeString
+
+}
+
 func CloseDB(db *sql.DB) {
 
 	//if err := db.Close(); err != nil {
@@ -30,7 +39,7 @@ var (
 func OpenDB(DBSource string) *sql.DB {
 	var err error
 	if !DBReady {
-		fmt.Println("CREATING DB ########################################")
+		fmt.Println(ConvertToISO8601(time.Now()), "CREATING DB ########################################")
 		var db *sql.DB
 		var dbhdd *sql.DB
 
@@ -55,8 +64,8 @@ func OpenDB(DBSource string) *sql.DB {
 		log.Fatal(err)
 		//return
 	}
-	//fmt.Println("HDD DB ASKED", DBAlt)
-	//fmt.Println("DB IN MEMORY", fmt.Sprintf("%v", &DB))
+	//fmt.Println(ConvertToISO8601(time.Now()),  "HDD DB ASKED", DBAlt)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "DB IN MEMORY", fmt.Sprintf("%v", &DB))
 	if DBSource == "hdd" {
 		return DBhdd
 	} else if DBSource == "ramprice" {
@@ -137,19 +146,19 @@ func SaveDBSourceEvery(duration time.Duration) {
 }
 
 func SaveDBSource() {
-	fmt.Println("saving.... don't touch anything...")
+	fmt.Println(ConvertToISO8601(time.Now()), "saving.... don't touch anything...")
 	cData := ReadCryptosSQLDB("ram")
 	bscBalances := ReadBSCBalancesSQLDB("ram")
 	bscContracts := ReadBSCContractsQLDB("ram")
 	bscAdresses := ReadBSCaddressesSQLDB("ram")
-	fmt.Println(fmt.Sprintf("%v", cData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cData))
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
 	WriteCryptosFullSQLDB(cData, "hdd")
 	//cData = Model.ReadCryptosSQLDB()
-	//fmt.Println(fmt.Sprintf("%v", cData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cData))
 	WriteBSCContractsSQLDB(bscContracts, "hdd")
 	WriteBSCaddressesSQLDB(bscAdresses, "hdd")
 	WriteBSCBalancesSQLDB(bscBalances, "hdd")
-	fmt.Println("saved")
+	fmt.Println(ConvertToISO8601(time.Now()), "saved")
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"time"
 )
 
 var DBinited = false
@@ -28,16 +29,16 @@ func InitDB() {
 	bscBalances := Model.ReadBSCBalancesSQLDB("hdd")
 	bscContracts := Model.ReadBSCContractsQLDB("hdd")
 	bscAddresses := Model.ReadBSCaddressesSQLDB("hdd")
-	//fmt.Println(fmt.Sprintf("%v", cData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cData))
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
 	Model.WriteCryptosFullSQLDB(cData, "ram")
 	//var cd Model.CoinData
 	//cd = Model.ReadCryptosSQLDB(false)
-	//fmt.Println(fmt.Sprintf("%v", cd))
-	//fmt.Println("This is from RAM")
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cd))
+	//fmt.Println(ConvertToISO8601(time.Now()),  "This is from RAM")
 	//cData = Model.ReadCryptosSQLDB()
-	//fmt.Println(fmt.Sprintf("%v", cData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cData))
 	Model.WriteBSCContractsSQLDB(bscContracts, "ram")
 	Model.WriteBSCBalancesSQLDB(bscBalances, "ram")
 	Model.WriteBSCaddressesSQLDB(bscAddresses, "ram")
@@ -80,11 +81,11 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	refreshAll := r.URL.Query()["refresh_all"]
 	refreshMap := r.URL.Query()["refresh_map"]
 	confirm := r.URL.Query()["confirm"]
-	//fmt.Println("confirm", confirm)
-	//fmt.Println("refresh", refreshAll)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "confirm", confirm)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "refresh", refreshAll)
 	var coinData Model.CoinData
 	var coinData1 Model.CoinData
-	//fmt.Println((len(refreshAll) > 0) && (len(confirm) > 0))
+	//fmt.Println(ConvertToISO8601(time.Now()),  (len(refreshAll) > 0) && (len(confirm) > 0))
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
 			Model.UpdateJsons(false)
@@ -102,7 +103,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		coinData = Model.ReadCryptosSQLDB("ram")
 	} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
 
-		fmt.Println("getting all cryptocurrencies...")
+		fmt.Println(Model.ConvertToISO8601(time.Now()), "getting all cryptocurrencies...")
 		if confirm[0] == "on" {
 			Model.UpdateJsons(true)
 			coinData = Model.ReadJson("cmcdb0.json")
@@ -115,7 +116,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		coinData = Model.ReadCryptosSQLDB("ram")
 	} else if (len(refreshMap) > 0) && (len(confirm) > 0) {
 
-		fmt.Println("getting all cryptocurrencies metadata...")
+		fmt.Println(Model.ConvertToISO8601(time.Now()), "getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
 			Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
@@ -140,14 +141,14 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		coinData = Model.ReadCryptosSQLDB("ram")
 	}
 	//for i := 0; i < len(coinData.CoinData); i++ {
-	//	fmt.Println("Name: ", coinData.CoinData[i].Name)
-	//	fmt.Println("Symbol: ", coinData.CoinData[i].Symbol)
+	//	fmt.Println(ConvertToISO8601(time.Now()),  "Name: ", coinData.CoinData[i].Name)
+	//	fmt.Println(ConvertToISO8601(time.Now()),  "Symbol: ", coinData.CoinData[i].Symbol)
 	//	//var price = coinData.CoinData[i].Properties.Price
 	//	var s = fmt.Sprintf("%.7f", coinData.CoinData[i].Properties.Dollar.Price)
-	//	fmt.Println("Price: ", s)
+	//	fmt.Println(ConvertToISO8601(time.Now()),  "Price: ", s)
 	//	s = fmt.Sprintf("%.2f", coinData.CoinData[i].Properties.Dollar.Volume24)
-	//	fmt.Println("Volume 24h: ", s)
-	//	fmt.Println("Date Added: ", coinData.CoinData[i].DateAdded)
+	//	fmt.Println(ConvertToISO8601(time.Now()),  "Volume 24h: ", s)
+	//	fmt.Println(ConvertToISO8601(time.Now()),  "Date Added: ", coinData.CoinData[i].DateAdded)
 	//}
 	var ifrom int64
 	var errfrom error
@@ -201,7 +202,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if errthresh == nil {
 		sthreshold = threshold[0]
 	}
-	fmt.Println("Successfully received request", from, to, threshold, len(submit) > 0)
+	fmt.Println(Model.ConvertToISO8601(time.Now()), "Successfully received request", from, to, threshold, len(submit) > 0)
 	if len(incrVol) > 0 {
 		sortVolumeIncrease(coinData1)
 	}
@@ -214,11 +215,11 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if len(decrPrice) > 0 {
 		sortPriceDecrease(coinData1)
 	}
-	//fmt.Println(fmt.Sprintf("%v", coinData1))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", coinData1))
 	env := View.GetEnv()
-	//fmt.Println(fmt.Sprintf("#%v", Model.DBReady))
-	//fmt.Println(fmt.Sprintf("#%v", Model.DBAlt))
-	//fmt.Println("db inited", DBinited)
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("#%v", Model.DBReady))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("#%v", Model.DBAlt))
+	//fmt.Println(ConvertToISO8601(time.Now()),  "db inited", DBinited)
 	p := map[string]stick.Value{"coinData": coinData1, "from": sfrom, "to": sto, "threshold": sthreshold}
 	var err = env.Execute("index.html.twig", w, p) // Loads "bar.html.twig" relative to fsRoot.
 	if err != nil {

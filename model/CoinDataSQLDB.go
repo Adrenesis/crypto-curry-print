@@ -11,7 +11,7 @@ import (
 )
 
 func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
-	fmt.Println("reading database...")
+	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 	db := OpenDB(DBSource)
 	var err error
 
@@ -95,7 +95,7 @@ func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
 			coinDatum.Slug = strings.Replace(coinDatum.Slug, " ", "-", -1)
 		}
 		coinDatum.Logo = fmt.Sprintf("%v", logo)
-		//fmt.Println("logo", coinDatum.Logo)
+		//fmt.Println(ConvertToISO8601(time.Now()),  "logo", coinDatum.Logo)
 		coinDatum.BscScan = fmt.Sprintf("%v", bscScan)
 		coinDatum.EthScan = fmt.Sprintf("%v", ethScan)
 		coinDatum.XrpScan = fmt.Sprintf("%v", xrpScan)
@@ -108,14 +108,14 @@ func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
 		log.Fatal(err)
 	}
 
-	//fmt.Println(fmt.Sprintf("%v", coinData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", coinData))
 	rows.Close()
 	CloseDB(db)
 	return coinDatum
 }
 
 func ReadCryptoByBSCContractSQLDB(contract string, DBSource string) CoinDatum {
-	fmt.Println("reading database...")
+	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 	db := OpenDB(DBSource)
 	var err error
 	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap from cryptos where UPPER(bsccontract) LIKE UPPER('" + contract + "') order by date_added desc;")
@@ -197,27 +197,27 @@ func ReadCryptoByBSCContractSQLDB(contract string, DBSource string) CoinDatum {
 			coinDatum.Slug = strings.Replace(coinDatum.Slug, " ", "-", -1)
 		}
 		coinDatum.Logo = fmt.Sprintf("%v", logo)
-		//fmt.Println("logo", coinDatum.Logo)
+		//fmt.Println(ConvertToISO8601(time.Now()),  "logo", coinDatum.Logo)
 		coinDatum.BscScan = fmt.Sprintf("%v", bscScan)
 		coinDatum.EthScan = fmt.Sprintf("%v", ethScan)
 		coinDatum.XrpScan = fmt.Sprintf("%v", xrpScan)
 		coinDatum.BscContract = fmt.Sprintf("%v", bscContract)
 		coinDatum.EthContract = fmt.Sprintf("%v", ethContract)
 		coinDatum.XrpContract = fmt.Sprintf("%v", xrpContract)
-		//fmt.Println("price: ", coinDatum.Properties.Dollar.Price)
+		//fmt.Println(ConvertToISO8601(time.Now()),  "price: ", coinDatum.Properties.Dollar.Price)
 	}
 	if err = rows.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	//fmt.Println(fmt.Sprintf("%v", coinData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", coinData))
 	rows.Close()
 	//CloseDB(db)
 	return coinDatum
 }
 
 func ReadCryptosSQLDB(DBSource string) CoinData {
-	fmt.Println("reading database...")
+	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 	db := OpenDB(DBSource)
 	var err error
 	CreateCryptoTable(DBSource)
@@ -303,7 +303,7 @@ func ReadCryptosSQLDB(DBSource string) CoinData {
 			coinDatum.Slug = strings.Replace(coinDatum.Slug, " ", "-", -1)
 		}
 		coinDatum.Logo = fmt.Sprintf("%v", logo)
-		//fmt.Println("logo", coinDatum.Logo)
+		//fmt.Println(ConvertToISO8601(time.Now()),  "logo", coinDatum.Logo)
 		coinDatum.BscScan = fmt.Sprintf("%v", bscScan)
 		coinDatum.EthScan = fmt.Sprintf("%v", ethScan)
 		coinDatum.XrpScan = fmt.Sprintf("%v", xrpScan)
@@ -317,7 +317,7 @@ func ReadCryptosSQLDB(DBSource string) CoinData {
 		log.Fatal(err)
 	}
 
-	//fmt.Println(fmt.Sprintf("%v", coinData))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", coinData))
 	rows.Close()
 	//CloseDB(db)
 	return coinData
@@ -342,7 +342,7 @@ create table if not exists cryptos(id INTEGER PRIMARY KEY AUTOINCREMENT, name VA
 	var seq int64
 	rows.Scan(&seq)
 	rows.Close()
-	//fmt.Println(seq)
+	//fmt.Println(ConvertToISO8601(time.Now()),  seq)
 	if seq < 1000000 {
 		//time.Sleep(10 * time.Second)
 		if _, err = db.Exec(`
@@ -382,7 +382,7 @@ func writeCryptoPrice(id int64, properties Property, db *sql.DB) {
 }
 
 func writeCryptoByBSCContract(price float64, contract string, db *sql.DB) {
-	//fmt.Println(contract)
+	//fmt.Println(ConvertToISO8601(time.Now()),  contract)
 	stmt := Prepare("UPDATE cryptos SET price = ? WHERE UPPER(bsccontract) LIKE UPPER('"+contract+"');", db)
 	Exec(stmt, price)
 	stmt.Close()
@@ -392,10 +392,10 @@ func WriteCryptosByBSCContract(data CoinData, DBSource string) {
 	db := OpenDB(DBSource)
 	tx := TxBegin(db)
 
-	//fmt.Println("contract before db write", fmt.Sprintf("%v", data))
+	//fmt.Println(ConvertToISO8601(time.Now()),  "contract before db write", fmt.Sprintf("%v", data))
 	for i := 0; i < len(data.CoinData); i++ {
 		if i%250 == 0 {
-			fmt.Println(fmt.Sprintf("contract written to db %d / %d", i, len(data.CoinData)))
+			fmt.Println(ConvertToISO8601(time.Now()), fmt.Sprintf("contract written to db %d / %d", i, len(data.CoinData)))
 		}
 		if i%25 == 0 {
 			time.Sleep(120 * time.Millisecond)
@@ -419,9 +419,9 @@ func WriteCryptosSQLDB(coinData CoinData, DBSource string) {
 	tx := TxBegin(db)
 	CreateCryptoTable(DBSource)
 	//CreateCryptoTable()
-	fmt.Println("writing cryptos in database...")
+	fmt.Println(ConvertToISO8601(time.Now()), "writing cryptos in database...")
 	for i := 0; i < len(coinData.CoinData); i++ {
-		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//fmt.Println(ConvertToISO8601(time.Now()),  "INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
 		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
 		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
@@ -455,9 +455,9 @@ func WriteCryptosPriceSQLDB(coinData CoinData, DBSource string) {
 	db := OpenDB(DBSource)
 	tx := TxBegin(db)
 	//CreateCryptoTable()
-	fmt.Println("writing cryptos in database...")
+	fmt.Println(ConvertToISO8601(time.Now()), "writing cryptos in database...")
 	for i := 0; i < len(coinData.CoinData); i++ {
-		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//fmt.Println(ConvertToISO8601(time.Now()),  "INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
 		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
 		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
@@ -525,7 +525,7 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
 	CreateCryptoTable(DBSource)
 
 	for i := 0; i < len(coinDataMap.CoinDataMap); i++ {
-		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//fmt.Println(ConvertToISO8601(time.Now()),  "INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
 		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
 		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
@@ -545,8 +545,8 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
 			} else {
 				explorer += "," + coinDataMap.CoinDataMap[i].URLs.Explorer[j]
 			}
-			//fmt.Println(coinDataMap.CoinDataMap[i].URLs.Explorer[j])
-			//fmt.Println(strings.Contains(coinDataMap.CoinDataMap[i].URLs.Explorer[j], "bscscan"))
+			//fmt.Println(ConvertToISO8601(time.Now()),  coinDataMap.CoinDataMap[i].URLs.Explorer[j])
+			//fmt.Println(ConvertToISO8601(time.Now()),  strings.Contains(coinDataMap.CoinDataMap[i].URLs.Explorer[j], "bscscan"))
 			if strings.Contains(coinDataMap.CoinDataMap[i].URLs.Explorer[j], "bscscan") {
 				bscScan = coinDataMap.CoinDataMap[i].URLs.Explorer[j]
 
@@ -575,8 +575,8 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
 				xrpContract = strings.TrimPrefix(xrpContract, "https://www.xrpscan.com/account/")
 				writeXrpScan(xrpScan, xrpContract, coinDataMap.CoinDataMap[i].Id, db)
 			}
-			fmt.Println(coinDataMap.CoinDataMap[i].DateAdded)
-			//fmt.Println(coinDataMap.CoinDataMap[i].Logo)
+			//fmt.Println(ConvertToISO8601(time.Now()),  coinDataMap.CoinDataMap[i].DateAdded)
+			//fmt.Println(ConvertToISO8601(time.Now()),  coinDataMap.CoinDataMap[i].Logo)
 
 			writeMap(coinDataMap.CoinDataMap[i].Slug, coinDataMap.CoinDataMap[i].Logo, coinDataMap.CoinDataMap[i].Id, db)
 		}
@@ -588,7 +588,7 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
 		technical := SerializeStringList(coinDataMap.CoinDataMap[i].URLs.Technical)
 		sourceCode := SerializeStringList(coinDataMap.CoinDataMap[i].URLs.SourceCode)
 		announcement := SerializeStringList(coinDataMap.CoinDataMap[i].URLs.Announcement)
-		//fmt.Println(explorer)
+		//fmt.Println(ConvertToISO8601(time.Now()),  explorer)
 
 		//args[1] = coinDataMap.CoinDataMap[i].Id
 		//args.Explorer = explorer
@@ -602,7 +602,7 @@ func WriteCryptosMapSQLDB(coinDataMap CoinDataMap, DBSource string) {
 		//writeUrls(technical, "technical", coinDataMap.CoinDataMap[i].Id)
 		//writeUrls(sourceCode, "source_code", coinDataMap.CoinDataMap[i].Id)
 		//writeUrls(announcement, "announcement", coinDataMap.CoinDataMap[i].Id)
-		//fmt.Println(fmt.Sprintf("%v", res))
+		//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", res))
 	}
 	if DBSource == "ram" {
 		RamMutex.Lock()
@@ -621,9 +621,9 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 	tx := TxBegin(db)
 	CreateCryptoTable(DBSource)
 	//CreateCryptoTable()
-	fmt.Println("writing cryptos in database...")
+	fmt.Println(ConvertToISO8601(time.Now()), "writing cryptos in database...")
 	for i := 0; i < len(coinData.CoinData); i++ {
-		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//fmt.Println(ConvertToISO8601(time.Now()),  "INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
 		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
 		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
@@ -640,7 +640,7 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 			coinData.CoinData[i].CirculatingSupply,
 			db,
 		)
-		//fmt.Println("INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
+		//fmt.Println(ConvertToISO8601(time.Now()),  "INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
 		//	strings.Replace(coinData.CoinData[i].Name, "'", "''",-1) +"', '" +
 		//	strings.Replace(coinData.CoinData[i].Symbol, "'", "''",-1) +"', '" +
 		//	fmt.Sprintf("%.7+f", coinData.CoinData[i].Properties.Dollar.Price) +"', '" +
@@ -660,8 +660,8 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 			} else {
 				explorer += "," + coinData.CoinData[i].Explorers[j]
 			}
-			//fmt.Println(coinDataMap.CoinDataMap[i].URLs.Explorer[j])
-			//fmt.Println(strings.Contains(coinDataMap.CoinDataMap[i].URLs.Explorer[j], "bscscan"))
+			//fmt.Println(ConvertToISO8601(time.Now()),  coinDataMap.CoinDataMap[i].URLs.Explorer[j])
+			//fmt.Println(ConvertToISO8601(time.Now()),  strings.Contains(coinDataMap.CoinDataMap[i].URLs.Explorer[j], "bscscan"))
 			if strings.Contains(coinData.CoinData[i].Explorers[j], "bscscan") {
 				bscScan = coinData.CoinData[i].Explorers[j]
 
@@ -690,8 +690,8 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 				xrpContract = strings.TrimPrefix(xrpContract, "https://www.xrpscan.com/account/")
 				writeXrpScan(xrpScan, xrpContract, coinData.CoinData[i].Id, db)
 			}
-			fmt.Println(coinData.CoinData[i].DateAdded)
-			//fmt.Println(coinDataMap.CoinDataMap[i].Logo)
+			//fmt.Println(ConvertToISO8601(time.Now()),  coinData.CoinData[i].DateAdded)
+			//fmt.Println(ConvertToISO8601(time.Now()),  coinDataMap.CoinDataMap[i].Logo)
 
 			writeMap(coinData.CoinData[i].Slug, coinData.CoinData[i].Logo, coinData.CoinData[i].Id, db)
 		}
@@ -703,7 +703,7 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 		technical := SerializeStringList(coinData.CoinData[i].Technicals)
 		sourceCode := SerializeStringList(coinData.CoinData[i].SourceCodes)
 		announcement := SerializeStringList(coinData.CoinData[i].Announcements)
-		//fmt.Println(explorer)
+		//fmt.Println(ConvertToISO8601(time.Now()),  explorer)
 
 		//args[1] = coinDataMap.CoinDataMap[i].Id
 		//args.Explorer = explorer

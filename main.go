@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	Controller "github.com/Adrenesis/crypto-curry-print/controller"
+	Model "github.com/Adrenesis/crypto-curry-print/model"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 	//"strconv"
 )
 
@@ -29,11 +31,11 @@ func main() {
 		port = 8880
 	}
 	var address = fmt.Sprintf("127.0.0.1:%d", port)
-	fmt.Println("Binding http://" + address + "/index...")
+	fmt.Println(Model.ConvertToISO8601(time.Now()), "Binding http://"+address+"/index...")
 	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	fmt.Println("Successfully hosting on https://", address)
+	fmt.Println(Model.ConvertToISO8601(time.Now()), "Successfully hosting on https://", address)
 }

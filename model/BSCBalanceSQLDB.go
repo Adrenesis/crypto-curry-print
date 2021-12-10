@@ -9,7 +9,7 @@ import (
 )
 
 func ReadBSCBalanceSQLDB(address string, contract string, DBSource string) BSCBalance {
-	fmt.Println("reading database...")
+	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 
 	CreateBSCBalancesTable(DBSource)
 	db := OpenDB(DBSource)
@@ -45,7 +45,7 @@ func ReadBSCBalanceSQLDB(address string, contract string, DBSource string) BSCBa
 }
 
 func ReadBSCBalancesSQLDB(DBSource string) BSCBalances {
-	fmt.Println("reading database...")
+	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 
 	CreateBSCBalancesTable(DBSource)
 	db := OpenDB(DBSource)
@@ -66,21 +66,21 @@ func ReadBSCBalancesSQLDB(DBSource string) BSCBalances {
 			&balance); err != nil {
 			log.Fatal(err)
 		}
-		//fmt.Println(address)
+		//fmt.Println(ConvertToISO8601(time.Now()),  address)
 		bscBalance.Address = fmt.Sprintf("%s", address)
 		bscBalance.Contract = fmt.Sprintf("%s", contract)
 		bscBalance.Amount = balance
-		//fmt.Println(fmt.Sprintf("%v", bscBalance))
+		//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", bscBalance))
 
 		bscBalances.Balances = append(bscBalances.Balances, bscBalance)
-		//fmt.Println(fmt.Sprintf("%v", bscBalances))
+		//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", bscBalances))
 	}
 	//if err = rows.Err(); err != nil {
 	//	log.Fatal(err)
 	//}
-	//fmt.Println(fmt.Sprintf("%v", bscBalances))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", bscBalances))
 	//CloseDB(db)
-	//fmt.Println(fmt.Sprintf("%v", bscBalances))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", bscBalances))
 
 	rows.Close()
 	return bscBalances

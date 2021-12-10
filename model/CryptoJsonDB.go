@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"time"
 )
 
 func ReadJson(filename string) CoinData {
@@ -15,9 +16,9 @@ func ReadJson(filename string) CoinData {
 	jsonFile, err := os.Open(filename)
 	// if we os.Open returns an error then handle it
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(ConvertToISO8601(time.Now()), err)
 	}
-	fmt.Println("Successfully Opened ", filename)
+	fmt.Println(ConvertToISO8601(time.Now()), "Successfully Opened ", filename)
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
@@ -29,7 +30,7 @@ func ReadJson(filename string) CoinData {
 
 	errJson := json.Unmarshal(byteValue, &coinData)
 	if errJson != nil {
-		fmt.Println("Failed to unmarshall json file")
+		fmt.Println(ConvertToISO8601(time.Now()), "Failed to unmarshall json file")
 		log.Fatal(errJson)
 	}
 	return coinData
@@ -38,19 +39,19 @@ func ReadJson(filename string) CoinData {
 func ReadMapJson200() CoinDataMap {
 	var coinDataMap CoinDataMap
 	coinDataMap1 := ReadMapJson("MapData" + fmt.Sprintf("%d", 200) + ".json")
-	//fmt.Println(fmt.Sprintf("%v", coinDataMap1))
+	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", coinDataMap1))
 	//var elements [][]byte
 	for _, element := range coinDataMap1.CoinDataMap {
-		//fmt.Println("=>", "Element:", element)
+		//fmt.Println(ConvertToISO8601(time.Now()),  "=>", "Element:", element)
 		//for key0, element0 := range element {
-		//	fmt.Println("Key:", key0, "=>", "Element:", element0)
+		//	fmt.Println(ConvertToISO8601(time.Now()),  "Key:", key0, "=>", "Element:", element0)
 		//}
 
 		var coinDatumMap CoinDatumMap
 
 		errJson := json.Unmarshal(element, &coinDatumMap)
 		if errJson != nil {
-			fmt.Println("Failed to unmarshall json file")
+			fmt.Println(ConvertToISO8601(time.Now()), "Failed to unmarshall json file")
 			log.Fatal(errJson)
 		}
 		coinDataMap.CoinDataMap = append(coinDataMap.CoinDataMap, coinDatumMap)
@@ -63,9 +64,9 @@ func ReadMapJson(filename string) CoinDataMapUnmarshaler {
 	jsonFile, err := os.Open(filename)
 	// if we os.Open returns an error then handle it
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(ConvertToISO8601(time.Now()), err)
 	}
-	fmt.Println("Successfully Opened ", filename)
+	fmt.Println(ConvertToISO8601(time.Now()), "Successfully Opened ", filename)
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
@@ -77,7 +78,7 @@ func ReadMapJson(filename string) CoinDataMapUnmarshaler {
 
 	errJson := json.Unmarshal(byteValue, &coinDataMap)
 	if errJson != nil {
-		fmt.Println("Failed to unmarshall json file")
+		fmt.Println(ConvertToISO8601(time.Now()), "Failed to unmarshall json file")
 		log.Fatal(errJson)
 	}
 	return coinDataMap
@@ -87,24 +88,24 @@ func ReadMapJsons() CoinDataMap {
 	var coinDataMap CoinDataMap
 	for i := 0; i < 16; i++ {
 		coinDataMap1 := ReadMapJson("MapData" + fmt.Sprintf("%d", i) + ".json")
-		//fmt.Println(fmt.Sprintf("%v", coinDataMap1))
+		//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", coinDataMap1))
 		//var elements [][]byte
 		for _, element := range coinDataMap1.CoinDataMap {
-			//fmt.Println("=>", "Element:", element)
+			//fmt.Println(ConvertToISO8601(time.Now()),  "=>", "Element:", element)
 			//for key0, element0 := range element {
-			//	fmt.Println("Key:", key0, "=>", "Element:", element0)
+			//	fmt.Println(ConvertToISO8601(time.Now()),  "Key:", key0, "=>", "Element:", element0)
 			//}
 
 			var coinDatumMap CoinDatumMap
 
 			errJson := json.Unmarshal(element, &coinDatumMap)
 			if errJson != nil {
-				fmt.Println("Failed to unmarshall json file")
+				fmt.Println(ConvertToISO8601(time.Now()), "Failed to unmarshall json file")
 				log.Fatal(errJson)
 			}
 			coinDataMap.CoinDataMap = append(coinDataMap.CoinDataMap, coinDatumMap)
 		}
-		//fmt.Println(fmt.Sprintf("%v", elements))
+		//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", elements))
 
 		//for j := 0; j < len(coinDataMap1.CoinDataMap); j++ {
 		//	coinDataMap.CoinDataMap = append(coinDataMap.CoinDataMap, coinDataMap1.CoinDataMap[j])
@@ -118,9 +119,9 @@ func ReadApiKey(filename string) ApiKeyData {
 	jsonFile, err := os.Open(filename)
 	// if we os.Open returns an error then handle it
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(ConvertToISO8601(time.Now()), err)
 	}
-	fmt.Println("Successfully Opened ", filename)
+	fmt.Println(ConvertToISO8601(time.Now()), "Successfully Opened ", filename)
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
@@ -132,10 +133,10 @@ func ReadApiKey(filename string) ApiKeyData {
 
 	errJson := json.Unmarshal(byteValue, &apiKeyData)
 	if errJson != nil {
-		fmt.Println("Failed to unmarshall json file")
+		fmt.Println(ConvertToISO8601(time.Now()), "Failed to unmarshall json file")
 		log.Fatal(errJson)
 	}
-	//fmt.Println("apikey", apiKeyData.ApiKey)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "apikey", apiKeyData.ApiKey)
 	return apiKeyData
 }
 
@@ -143,7 +144,7 @@ func updateJson(from string, limit string, filename string) {
 	client := http.Client{}
 
 	apiKey := ReadApiKey(".env.json").CMCApiKey
-	//fmt.Println("apikey", apiKey)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "apikey", apiKey)
 
 	req, err := http.NewRequest("GET", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest", nil)
 	if err != nil {
@@ -166,7 +167,7 @@ func updateJson(from string, limit string, filename string) {
 	defer res.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
-		fmt.Println("Non-OK HTTP status:", res.StatusCode)
+		fmt.Println(ConvertToISO8601(time.Now()), "Non-OK HTTP status:", res.StatusCode)
 		fmt.Printf("%#v", req.URL.String())
 		fmt.Printf("%#v", req)
 		fmt.Printf("%#v", q)
@@ -178,7 +179,7 @@ func updateJson(from string, limit string, filename string) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("Succefully written", filename)
+		fmt.Println(ConvertToISO8601(time.Now()), "Succefully written", filename)
 	}
 }
 func UpdateMapJsons() {
@@ -186,7 +187,7 @@ func UpdateMapJsons() {
 	client := http.Client{}
 
 	apiKey := ReadApiKey(".env.json").CMCApiKey
-	//fmt.Println("apikey", apiKey)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "apikey", apiKey)
 
 	var ids []int64
 	for i := 0; i < len(coinData.CoinData); i++ {
@@ -219,7 +220,7 @@ func UpdateMapJsons() {
 		defer res.Body.Close()
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if res.StatusCode != http.StatusOK {
-			fmt.Println("Non-OK HTTP status:", res.StatusCode)
+			fmt.Println(ConvertToISO8601(time.Now()), "Non-OK HTTP status:", res.StatusCode)
 			//fmt.Printf("%#v", req.URL.String())
 			//fmt.Printf("%#v", req)
 			fmt.Printf("%s", bodyBytes)
@@ -232,7 +233,7 @@ func UpdateMapJsons() {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println("Succefully written", filename)
+			fmt.Println(ConvertToISO8601(time.Now()), "Succefully written", filename)
 		}
 	}
 }
@@ -242,7 +243,7 @@ func UpdateMapJson() {
 	client := http.Client{}
 
 	apiKey := ReadApiKey(".env.json").CMCApiKey
-	//fmt.Println("apikey", apiKey)
+	//fmt.Println(ConvertToISO8601(time.Now()),  "apikey", apiKey)
 
 	var ids []int64
 	for i := 0; i < len(coinData.CoinData); i++ {
@@ -275,7 +276,7 @@ func UpdateMapJson() {
 	defer res.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
-		fmt.Println("Non-OK HTTP status:", res.StatusCode)
+		fmt.Println(ConvertToISO8601(time.Now()), "Non-OK HTTP status:", res.StatusCode)
 		//fmt.Printf("%#v", req.URL.String())
 		//fmt.Printf("%#v", req)
 		fmt.Printf("%s", bodyBytes)
@@ -288,7 +289,7 @@ func UpdateMapJson() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("Succefully written", filename)
+		fmt.Println(ConvertToISO8601(time.Now()), "Succefully written", filename)
 	}
 
 }
