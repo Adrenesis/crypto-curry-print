@@ -14,6 +14,7 @@
             position: sticky;
             top: 0;
             background-color: #211301;
+            z-index: 98;
         }
         table {
             width: 100%;
@@ -22,6 +23,7 @@
             font-weight: bolder;
             text-decoration: underline;
             font-size: 110%;
+            z-index: 98;
         }
         .percent-change {
             color: white;
@@ -38,6 +40,7 @@
             background-color: #211301;
             padding-top: 10px;
             padding-bottom: 10px;
+            z-index: 98;
         }
         .cmc-viewer {
             position: sticky;
@@ -165,7 +168,10 @@
                     {% endif %}
                     "
                 >{{ coinDatum.Properties.Dollar.PercentChange24|percent }}</span>
-                    {{ coinDatum.Properties.Dollar.Price|number_format }}
+                    <div class="tooltip">
+                        {{ coinDatum.Properties.Dollar.Price|number_format }}
+                        <span class="tooltiptext">Last change from {{ coinDatum.Properties.Dollar.LastBlock.Network }} on {{ coinDatum.Properties.Dollar.LastBlock.TimeStamp.ISO8601|date }} at block {{ coinDatum.Properties.Dollar.LastBlock.Height }}</span>
+                    </div>
                 </td>
                 <td class="number-right">{{ coinDatum.Properties.Dollar.Volume24|number_format_vol }}</td>
                 <td style="text-align: end;">{{ coinDatum.DateAdded|date }}</td>

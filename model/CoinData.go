@@ -2,6 +2,11 @@ package model
 
 type CoinData struct {
 	CoinData []CoinDatum `json:"data"`
+	Status   CMCStatus   `json:"status"`
+}
+
+type CMCStatus struct {
+	TimeStamp string `json:""`
 }
 
 type CoinDatum struct {
@@ -37,6 +42,7 @@ type Property struct {
 	Dollar MarketValue `json:"USD"`
 }
 type MarketValue struct {
+	LastBlock               BlockchainBlock
 	Price                   float64 `json:"price"`
 	Volume24                float64 `json:"volume_24h"`
 	VolumeChange24          float64 `json:"volume_change_24h"`

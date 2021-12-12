@@ -21,10 +21,12 @@ func InitDB() {
 	Model.CreateBSCContractsTable("hdd")
 	Model.CreateCryptoTable("hdd")
 	Model.CreateBSCaddressesTable("hdd")
+	Model.CreateBSCPricePointTable("hdd")
 	Model.CreateBSCBalancesTable("ram")
 	Model.CreateBSCContractsTable("ram")
 	Model.CreateBSCaddressesTable("ram")
 	Model.CreateCryptoTable("ram")
+	Model.CreateBSCPricePointTable("ram")
 	cData = Model.ReadCryptosSQLDB("hdd")
 	bscBalances := Model.ReadBSCBalancesSQLDB("hdd")
 	bscContracts := Model.ReadBSCContractsQLDB("hdd")
@@ -88,29 +90,68 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println(ConvertToISO8601(time.Now()),  (len(refreshAll) > 0) && (len(confirm) > 0))
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
-			Model.UpdateJsons(false)
+			//Model.UpdateJsons(false)
 			coinData = Model.ReadCryptosSQLDB("ram")
 			coinData1 = Model.ReadJson("cmcdb200.json")
+			var pricePoints Model.BSCPricePoints
 			for i := 0; i < len(coinData1.CoinData); i++ {
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.Network = "cmc"
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.Height = -1
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+				var pricePoint Model.BSCPricePoint
+				pricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
+				pricePoint.Block.Height = -1
+				pricePoint.Block.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				pricePoint.CMCId = coinData1.CoinData[i].Id
+				pricePoints = append(pricePoints, pricePoint)
 			}
 			Model.WriteCryptosSQLDB(coinData, "ram")
 			Model.UpdateMapJson()
 			var coinDataMap Model.CoinDataMap
 			coinDataMap = Model.ReadMapJson200()
 			Model.WriteCryptosMapSQLDB(coinDataMap, "ram")
+			Model.WriteBSCPricePointsSQLDB(pricePoints, "ram")
 		}
 		coinData = Model.ReadCryptosSQLDB("ram")
 	} else if (len(refreshAll) > 0) && (len(confirm) > 0) {
 
 		fmt.Println(Model.ConvertToISO8601(time.Now()), "getting all cryptocurrencies...")
 		if confirm[0] == "on" {
-			Model.UpdateJsons(true)
-			coinData = Model.ReadJson("cmcdb0.json")
+			//Model.UpdateJsons(true)
+
+			var pricePoints Model.BSCPricePoints
+			coinData1 = Model.ReadJson("cmcdb0.json")
+			for i := 0; i < len(coinData1.CoinData); i++ {
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.Network = "cmc"
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.Height = -1
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+				var pricePoint Model.BSCPricePoint
+				pricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
+				pricePoint.Block.Height = -1
+				pricePoint.Block.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				pricePoint.CMCId = coinData1.CoinData[i].Id
+				pricePoints = append(pricePoints, pricePoint)
+			}
+
 			coinData1 = Model.ReadJson("cmcdb1.json")
 			for i := 0; i < len(coinData1.CoinData); i++ {
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.Network = "cmc"
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.Height = -1
+				coinData1.CoinData[i].Properties.Dollar.LastBlock.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
+				//if coinData1.CoinData[i].BscContract != "" {
+				var pricePoint Model.BSCPricePoint
+				pricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
+				pricePoint.Block.Height = -1
+				pricePoint.Block.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				pricePoint.CMCId = coinData1.CoinData[i].Id
+				pricePoints = append(pricePoints, pricePoint)
+				//}
 			}
+			fmt.Println(pricePoints)
+			Model.WriteBSCPricePointsSQLDB(pricePoints, "ram")
 		}
 		Model.WriteCryptosSQLDB(coinData, "ram")
 		coinData = Model.ReadCryptosSQLDB("ram")
@@ -118,7 +159,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println(Model.ConvertToISO8601(time.Now()), "getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
-			Model.UpdateMapJsons()
+			//Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
 			Model.WriteCryptosMapSQLDB(coinDataMap, "ram")
 			//coinData = Model.ReadJson("cmcdb0.json")

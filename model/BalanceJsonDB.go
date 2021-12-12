@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -125,7 +126,7 @@ func ReadBitQueryResultJson(address string, filename string) BSCBalances {
 	var bscBalances BSCBalances
 	//fmt.Println(ConvertToISO8601(time.Now()),  "bitquery result", fmt.Sprintf("%v", bitQueryResult))
 	for i := 0; i < len(bitQueryResult.Data.Properties.API[0].Balances); i++ {
-		fmt.Println(ConvertToISO8601(time.Now()), fmt.Sprintf("%v", bitQueryResult.Data.Properties.API[0].Balances[i].Token.Address))
+		//fmt.Println(ConvertToISO8601(time.Now()), fmt.Sprintf("%v", bitQueryResult.Data.Properties.API[0].Balances[i].Token.Address))
 		var bscBalance BSCBalance
 		bscBalance.Amount = bitQueryResult.Data.Properties.API[0].Balances[i].Amount
 		bscBalance.Address = address
@@ -242,6 +243,10 @@ func UpdateBSCBalanceJsonFromBitQuery(address string, filename string) {
 }
 
 func UpdateBSCPricesForContractListJsonFromBitQuery(contract string, contractString string, filename string) {
+	yesterday := time.Now()
+	yesterday = yesterday.Add(-24 * time.Hour)
+	yesterdayString := ConvertToISO8601(yesterday)[:10]
+	fmt.Println(yesterdayString)
 	query := `{
 				  ethereum(network: bsc) {
 					dexTrades(
@@ -250,12 +255,15 @@ func UpdateBSCPricesForContractListJsonFromBitQuery(contract string, contractStr
 					  exchangeName: {is: "Pancake v2"}
 					  baseCurrency: {in: ` + contractString + `}
 					  quoteCurrency: {is: "` + contract + `"}
-					  
+					  date: {after: "` + yesterdayString + `"}
 					) {
 
 					  tradeIndex
 					  block {
 						height
+						timestamp {
+						  iso8601
+						}
 					  }
 					  baseCurrency {
 						symbol
@@ -275,6 +283,10 @@ func UpdateBSCPricesForContractListJsonFromBitQuery(contract string, contractStr
 }
 
 func UpdateBSCPricesJsonFromBitQuery(contract string, contractString string, filename string) {
+	yesterday := time.Now()
+	yesterday = yesterday.Add(-24 * time.Hour)
+	yesterdayString := ConvertToISO8601(yesterday)[:10]
+	fmt.Println(yesterdayString)
 	query := `{
 				  ethereum(network: bsc) {
 					dexTrades(
@@ -283,12 +295,16 @@ func UpdateBSCPricesJsonFromBitQuery(contract string, contractString string, fil
 					  exchangeName: {is: "Pancake v2"}
 					  baseCurrency: {not: "` + contract + `"}
 					  quoteCurrency: {is: "` + contract + `"}
+					  date: {after: "` + yesterdayString + `"}
 					  
 					) {
 
 					  tradeIndex
 					  block {
 						height
+						timestamp {
+						  iso8601
+						}
 					  }
 					  baseCurrency {
 						symbol
@@ -308,17 +324,25 @@ func UpdateBSCPricesJsonFromBitQuery(contract string, contractString string, fil
 }
 
 func UpdateBSCPricesAnyContractJsonFromBitQuery(contractString string, filename string) {
+	yesterday := time.Now()
+	yesterday = yesterday.Add(-24 * time.Hour)
+	yesterdayString := ConvertToISO8601(yesterday)[:10]
+	fmt.Println(yesterdayString)
 	query := `{
 				  ethereum(network: bsc) {
 					dexTrades(
 					  options: {desc: ["block.height","tradeIndex"]
 					  limitBy: {each: "baseCurrency.address" limit:1}}
 					  exchangeName: {is: "Pancake v2"}
-					  baseCurrency: {not: "0x55d398326f99059ff775485246999027b3197955"}
+					  baseCurrency: {in: ` + contractString + `}
+					  date: {after: "` + yesterdayString + `"}
 					) {
 					  tradeIndex
 					  block {
 						height
+						timestamp {
+						  iso8601
+						}
 					  }
 					  baseCurrency {
 						symbol
@@ -355,7 +379,10 @@ func ReadBitQueryQuoteResultFromJson(filename string) BitQueryBSCQuoteResult {
 }
 
 func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
+	time.Sleep(20 * time.Second)
 	for true {
+
+		var pricePoints BSCPricePoints
 		coinDataInDB := ReadCryptosSQLDB("ram")
 		contractString := ""
 		bscCount := 0
@@ -403,24 +430,29 @@ func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
 					var coinDatum CoinDatum
 					coinDatum.BscContract = bitQueryResult.Data.Properties.API[i].Currency.Address
 					coinDatum.Properties.Dollar.Price = bitQueryResult.Data.Properties.API[i].Price
+					coinDatum.Properties.Dollar.LastBlock.Height = bitQueryResult.Data.Properties.API[i].Block.Height
+					coinDatum.Properties.Dollar.LastBlock.TimeStamp.ISO8601 = strings.Replace(bitQueryResult.Data.Properties.API[i].Block.TimeStamp.ISO8601, "Z", ".000Z", -1)
+					coinDatum.Properties.Dollar.LastBlock.Network = "bsc"
 					coinData1.CoinData = append(coinData1.CoinData, coinDatum)
 				}
 				coinData := ReadCryptosSQLDB("ram")
-				coinDataIndexByContract := make(map[string]int64)
-				coinDataByContract := make(map[string]CoinDatum)
-				for i := 0; i < len(coinData.CoinData); i++ {
-					coinDataIndexByContract[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i].Id
-					coinDataByContract[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i]
-				}
+				coinDataByContract := GetCoinDataByBscContracts(coinData)
 				for i := 0; i < len(coinData1.CoinData); i++ {
-					coinData1.CoinData[i].Id = coinDataIndexByContract[strings.ToLower(coinData1.CoinData[i].BscContract)]
-					fmt.Println(ConvertToISO8601(time.Now()), "Name", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name, "price_before", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Properties.Dollar.Price, "price_after", bitQueryResult.Data.Properties.API[i].Price)
+					coinData1.CoinData[i].Id = coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Id
+					if coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name != "" {
+						fmt.Println(ConvertToISO8601(time.Now()), "Name", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name, "price_before", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Properties.Dollar.Price, "price_after", bitQueryResult.Data.Properties.API[i].Price, "on_block", coinData1.CoinData[i].Properties.Dollar.LastBlock.Height)
+						var PricePoint BSCPricePoint
+						PricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
+						PricePoint.Block = coinData1.CoinData[i].Properties.Dollar.LastBlock
+						PricePoint.CMCId = coinData1.CoinData[i].Id
+						pricePoints = append(pricePoints, PricePoint)
+					}
 				}
 				WriteCryptosPriceSQLDB(coinData1, "ram")
 				fmt.Println(ConvertToISO8601(time.Now()), "Refreshed prices from USDT", k)
 			}
+			time.Sleep(3 * time.Second)
 		}
-		fmt.Println(contractStrings[0])
 		for k := 0; k < divider; k++ {
 			UpdateBSCPricesForContractListJsonFromBitQuery("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", contractStrings[k], "AutoBSCPricesBNB.json")
 			if IsPriceJsonFromBitQueryValid("AutoBSCPricesBNB.json") {
@@ -431,20 +463,24 @@ func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
 					var coinDatum CoinDatum
 					coinDatum.BscContract = bitQueryResult.Data.Properties.API[i].Currency.Address
 					coinDatum.Properties.Dollar.Price = bitQueryResult.Data.Properties.API[i].Price * coinDatum1.Properties.Dollar.Price
+					coinDatum.Properties.Dollar.LastBlock = bitQueryResult.Data.Properties.API[i].Block
+					coinDatum.Properties.Dollar.LastBlock.TimeStamp.ISO8601 = strings.Replace(bitQueryResult.Data.Properties.API[i].Block.TimeStamp.ISO8601, "Z", ".000Z", -1)
+					coinDatum.Properties.Dollar.LastBlock.Network = "bsc"
 					coinData1.CoinData = append(coinData1.CoinData, coinDatum)
 
 				}
 				coinData := ReadCryptosSQLDB("ram")
-				coinDataIndex := make(map[string]int64)
-				coinDataByContract := make(map[string]CoinDatum)
-				for i := 0; i < len(coinData.CoinData); i++ {
-					coinDataIndex[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i].Id
-					coinDataByContract[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i]
-				}
+				coinDataByContract := GetCoinDataByBscContracts(coinData)
 				for i := 0; i < len(coinData1.CoinData); i++ {
-					coinData1.CoinData[i].Id = coinDataIndex[strings.ToLower(coinData1.CoinData[i].BscContract)]
+					coinData1.CoinData[i].Id = coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Id
 					if coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name != "" {
 						fmt.Println(ConvertToISO8601(time.Now()), "Name", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name, "price_before", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Properties.Dollar.Price, "price_after", coinData1.CoinData[i].Properties.Dollar.Price)
+						var PricePoint BSCPricePoint
+						PricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
+						PricePoint.Block = coinData1.CoinData[i].Properties.Dollar.LastBlock
+
+						PricePoint.CMCId = coinData1.CoinData[i].Id
+						pricePoints = append(pricePoints, PricePoint)
 					}
 
 				}
@@ -452,7 +488,65 @@ func RewriteJsonPricesFromBitQueryEvery(duration time.Duration) {
 				fmt.Println(ConvertToISO8601(time.Now()), "Refreshed prices from BNB", k)
 				fmt.Println(coinDatum1.Properties.Dollar.Price)
 			}
+			time.Sleep(3 * time.Second)
 		}
+
+		for k := 0; k < divider; k++ {
+			UpdateBSCPricesAnyContractJsonFromBitQuery(contractStrings[k], "AutoBSCPricesANY.json")
+			if IsPriceJsonFromBitQueryValid("AutoBSCPricesANY.json") {
+				bitQueryResult := ReadBitQueryQuoteResultFromJson("AutoBSCPricesANY.json")
+				coinDatum1 := ReadCryptoByBSCContractSQLDB("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", "ram")
+				coinData := ReadCryptosSQLDB("ram")
+				coinDataByContract := GetCoinDataByBscContracts(coinData)
+				for i := 0; i < len(coinData.CoinData); i++ {
+					coinDataByContract[strings.ToLower(coinData.CoinData[i].BscContract)] = coinData.CoinData[i]
+				}
+				var coinData1 CoinData
+				for i := 0; i < len(bitQueryResult.Data.Properties.API); i++ {
+					var coinDatum CoinDatum
+					referenceCoinDatum := coinDataByContract[strings.ToLower(bitQueryResult.Data.Properties.API[i].QuoteCurrency.Address)]
+					var newTokenDate = strings.Replace(bitQueryResult.Data.Properties.API[i].Block.TimeStamp.ISO8601, "Z", ".000Z", -1)
+					var oldTokenDate = referenceCoinDatum.Properties.Dollar.LastBlock.TimeStamp.ISO8601
+					mk := make([]string, 2)
+					mk[0] = newTokenDate
+					mk[1] = oldTokenDate
+					sort.Strings(mk)
+					if (referenceCoinDatum.Name != "") && (newTokenDate == mk[0]) {
+						coinDatum.BscContract = bitQueryResult.Data.Properties.API[i].Currency.Address
+						coinDatum.Properties.Dollar.Price = bitQueryResult.Data.Properties.API[i].Price * referenceCoinDatum.Properties.Dollar.Price
+						if bitQueryResult.Data.Properties.API[i].Block.Height < referenceCoinDatum.Properties.Dollar.LastBlock.Height {
+							coinDatum.Properties.Dollar.LastBlock.Height = bitQueryResult.Data.Properties.API[i].Block.Height
+						} else {
+							coinDatum.Properties.Dollar.LastBlock.Height = referenceCoinDatum.Properties.Dollar.LastBlock.Height
+						}
+
+						coinDatum.Properties.Dollar.LastBlock.TimeStamp.ISO8601 = mk[0]
+						coinDatum.Properties.Dollar.LastBlock.Network = "bsc"
+						coinData1.CoinData = append(coinData1.CoinData, coinDatum)
+					}
+
+				}
+
+				for i := 0; i < len(coinData1.CoinData); i++ {
+					coinData1.CoinData[i].Id = coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Id
+					if coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name != "" {
+						fmt.Println(ConvertToISO8601(time.Now()), "Name", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Name, "price_before", coinDataByContract[strings.ToLower(coinData1.CoinData[i].BscContract)].Properties.Dollar.Price, "price_after", coinData1.CoinData[i].Properties.Dollar.Price, "on_block", coinData1.CoinData[i].Properties.Dollar.LastBlock.Height)
+						var PricePoint BSCPricePoint
+						PricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
+						PricePoint.Block = coinData1.CoinData[i].Properties.Dollar.LastBlock
+						PricePoint.CMCId = coinData1.CoinData[i].Id
+						pricePoints = append(pricePoints, PricePoint)
+					}
+
+				}
+				WriteCryptosPriceSQLDB(coinData1, "ram")
+				fmt.Println(ConvertToISO8601(time.Now()), "Refreshed prices from ANY", k)
+				fmt.Println(coinDatum1.Properties.Dollar.Price)
+			}
+			time.Sleep(3 * time.Second)
+		}
+		fmt.Println(pricePoints)
+		WriteBSCPricePointsSQLDB(pricePoints, "ram")
 		time.Sleep(duration)
 	}
 }
@@ -549,7 +643,7 @@ func ReadUnmarshalResultJson(address string, filename string) BSCBalances {
 	var bscBalances BSCBalances
 	//fmt.Println(ConvertToISO8601(time.Now()),  "unmarshal result", fmt.Sprintf("%v", unmarshalResult))
 	for i := 0; i < len(unmarshalResult); i++ {
-		fmt.Println(ConvertToISO8601(time.Now()), fmt.Sprintf("%v", unmarshalResult[i]))
+		//fmt.Println(ConvertToISO8601(time.Now()), fmt.Sprintf("%v", unmarshalResult[i]))
 		var bscBalance BSCBalance
 		amount, _ := strconv.ParseFloat(unmarshalResult[i].Amount, 64)
 		bscBalance.Amount = amount / math.Pow(10, unmarshalResult[i].Decimals)

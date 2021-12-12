@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/tyler-sommer/stick"
 	"os"
-	"strings"
 )
 
 func GetEnv() *stick.Env {
@@ -35,7 +34,10 @@ func GetEnv() *stick.Env {
 		v := stick.CoerceString(val)
 		// Do some formatting.
 		v = fmt.Sprintf("%s", v)
-		v = strings.TrimSuffix(v, ".000Z")
+		if len(v) > 19 {
+			v = v[:19]
+		}
+
 		return v
 	}
 	return env

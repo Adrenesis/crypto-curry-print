@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -69,9 +70,12 @@ func HandleBSCBalance(w http.ResponseWriter, r *http.Request) {
 			bscBalances.Balances = append(bscBalances.Balances, bscBalances1.Balances[i])
 		}
 	}
+
+	coinData := Model.ReadCryptosSQLDB("ram")
+	coinDataByContract := Model.GetCoinDataByBscContracts(coinData)
 	for i := 0; i < len(bscBalances.Balances); i++ {
 		//fmt.Println(ConvertToISO8601(time.Now()),  "test")
-		bscBalances.Balances[i].CoinDatum = Model.ReadCryptoByBSCContractSQLDB(bscBalances.Balances[i].Contract, "ram")
+		bscBalances.Balances[i].CoinDatum = coinDataByContract[strings.ToLower(bscBalances.Balances[i].Contract)]
 		bscBalances.Balances[i].USDConvert = bscBalances.Balances[i].Amount * bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price
 		//fmt.Println(ConvertToISO8601(time.Now()),  bscBalances.Balances[i].CoinDatum.Name)
 		//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", bscBalances.Balances[i].CoinDatum.Properties.Dollar.Price))

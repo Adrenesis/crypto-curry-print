@@ -97,7 +97,10 @@
                 {{balance.Amount|f4d }}
             </td>
             <td class="number-right">
-                {{ (balance.Amount * balance.CoinDatum.Properties.Dollar.Price)|f4d }}
+                <div class="tooltip">
+                    {{ (balance.Amount * balance.CoinDatum.Properties.Dollar.Price)|f4d }}
+                    <span class="tooltiptext">Last price change from {{ balance.CoinDatum.Properties.Dollar.LastBlock.Network }} on {{ balance.CoinDatum.Properties.Dollar.LastBlock.TimeStamp.ISO8601|date }}  at block {{ balance.CoinDatum.Properties.Dollar.LastBlock.Height }} </span>
+                </div>
             </td>
             <td>
                 <a  onclick="

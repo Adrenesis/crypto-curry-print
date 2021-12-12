@@ -44,6 +44,18 @@ type BitQueryBSCQuoteDataApi struct {
 }
 
 type BitQueryBSCQuoteTrades struct {
-	Currency BitQueryBSCToken `json:"baseCurrency"`
-	Price    float64          `json:"quotePrice"`
+	Currency      BitQueryBSCToken `json:"baseCurrency"`
+	QuoteCurrency BitQueryBSCToken `json:"quoteCurrency"`
+	Price         float64          `json:"quotePrice"`
+	Block         BlockchainBlock  `json:"block"`
+}
+
+type BlockchainBlock struct {
+	Height    int64             `json:"height"`
+	TimeStamp BitQueryTimeStamp `json:"timestamp"`
+	Network   string
+}
+
+type BitQueryTimeStamp struct {
+	ISO8601 string `json:"iso8601"`
 }

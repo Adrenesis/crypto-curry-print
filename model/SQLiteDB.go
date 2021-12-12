@@ -50,8 +50,8 @@ func OpenDB(DBSource string) *sql.DB {
 		dbhdd, err = sql.Open("sqlite", "./cryptoDB.db")
 		DBhdd = dbhdd
 		DBReady = true
-		go LaunchSaveDeamon(180 * time.Second)
-		go RewriteJsonPricesFromBitQueryEvery(5 * time.Second)
+		go LaunchSaveDeamon(20 * time.Second)
+		go RewriteJsonPricesFromBitQueryEvery(25 * time.Second)
 	} else {
 		//DB.Close()
 		//time.Sleep(2 * time.Second)
@@ -151,14 +151,17 @@ func SaveDBSource() {
 	bscBalances := ReadBSCBalancesSQLDB("ram")
 	bscContracts := ReadBSCContractsQLDB("ram")
 	bscAdresses := ReadBSCaddressesSQLDB("ram")
+	bscPricePoints := ReadPricePointsSQLDB("ram")
 	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cData))
 	//Model.CreateCryptoTable()
 	//Model.WriteCryptosSQLDB(cData)
 	WriteCryptosFullSQLDB(cData, "hdd")
+	fmt.Println(cData)
 	//cData = Model.ReadCryptosSQLDB()
 	//fmt.Println(ConvertToISO8601(time.Now()),  fmt.Sprintf("%v", cData))
 	WriteBSCContractsSQLDB(bscContracts, "hdd")
 	WriteBSCaddressesSQLDB(bscAdresses, "hdd")
 	WriteBSCBalancesSQLDB(bscBalances, "hdd")
+	WriteBSCPricePointsSQLDB(bscPricePoints, "hdd")
 	fmt.Println(ConvertToISO8601(time.Now()), "saved")
 }
