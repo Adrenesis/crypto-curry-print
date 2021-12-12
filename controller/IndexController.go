@@ -90,7 +90,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println(ConvertToISO8601(time.Now()),  (len(refreshAll) > 0) && (len(confirm) > 0))
 	if (len(refresh) > 0) && (len(confirm) > 0) {
 		if confirm[0] == "on" {
-			//Model.UpdateJsons(false)
+			Model.UpdateJsons(false)
 			coinData = Model.ReadCryptosSQLDB("ram")
 			coinData1 = Model.ReadJson("cmcdb200.json")
 			var pricePoints Model.BSCPricePoints
@@ -118,7 +118,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println(Model.ConvertToISO8601(time.Now()), "getting all cryptocurrencies...")
 		if confirm[0] == "on" {
-			//Model.UpdateJsons(true)
+			Model.UpdateJsons(true)
 
 			var pricePoints Model.BSCPricePoints
 			coinData1 = Model.ReadJson("cmcdb0.json")
@@ -159,7 +159,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println(Model.ConvertToISO8601(time.Now()), "getting all cryptocurrencies metadata...")
 		if confirm[0] == "on" {
-			//Model.UpdateMapJsons()
+			Model.UpdateMapJsons()
 			coinDataMap := Model.ReadMapJsons()
 			Model.WriteCryptosMapSQLDB(coinDataMap, "ram")
 			//coinData = Model.ReadJson("cmcdb0.json")
