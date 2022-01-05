@@ -36,6 +36,9 @@ type CoinDatum struct {
 	BscContract       string
 	EthContract       string
 	XrpContract       string
+	IsReviewed        bool
+	IsRejected        bool
+	IsInteresting     bool
 }
 
 type Property struct {

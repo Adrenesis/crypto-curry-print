@@ -16,7 +16,7 @@ func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
 	db := OpenDB(DBSource)
 	var err error
 
-	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source from cryptos where id = ? order by date_added desc;", fmt.Sprintf("%d", id))
+	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source, is_reviewed, is_rejected, is_interesting from cryptos where id = ? order by date_added desc;", fmt.Sprintf("%d", id))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,7 +83,10 @@ func ReadCryptoSQLDB(id int64, DBSource string) CoinDatum {
 			&coinDatum.Properties.Dollar.FullyDilutedMarketPrice,
 			&lastPriceUpdatedAt,
 			&lastPriceBlockHeight,
-			&lastPriceNetworkSource); err != nil {
+			&lastPriceNetworkSource,
+			&coinDatum.IsReviewed,
+			&coinDatum.IsRejected,
+			&coinDatum.IsInteresting); err != nil {
 			log.Fatal(err)
 		}
 		coinDatum.Tags = strings.Split(fmt.Sprintf("%v", tags), ",")
@@ -136,7 +139,7 @@ func ReadCryptoByBSCContractSQLDB(contract string, DBSource string) CoinDatum {
 	//fmt.Println(ConvertToISO8601(time.Now()),  "reading database...")
 	db := OpenDB(DBSource)
 	var err error
-	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source from cryptos where UPPER(bsccontract) LIKE UPPER('" + contract + "') order by date_added desc;")
+	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source, is_reviewed, is_rejected, is_interesting from cryptos where UPPER(bsccontract) LIKE UPPER('" + contract + "') order by date_added desc;")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -202,7 +205,10 @@ func ReadCryptoByBSCContractSQLDB(contract string, DBSource string) CoinDatum {
 			&coinDatum.Properties.Dollar.FullyDilutedMarketPrice,
 			&lastPriceUpdatedAt,
 			&lastPriceBlockHeight,
-			&lastPriceNetworkSource); err != nil {
+			&lastPriceNetworkSource,
+			&coinDatum.IsReviewed,
+			&coinDatum.IsRejected,
+			&coinDatum.IsInteresting); err != nil {
 			log.Fatal(err)
 		}
 		coinDatum.Tags = strings.Split(fmt.Sprintf("%v", tags), ",")
@@ -256,7 +262,7 @@ func ReadCryptosSQLDB(DBSource string) CoinData {
 	db := OpenDB(DBSource)
 	var err error
 	CreateCryptoTable(DBSource)
-	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source from cryptos order by date_added desc;")
+	rows, err := db.Query("select id, name, slug, symbol, logo, price, vol24, date_added, explorer, bscscan, ethscan, xrpscan, bsccontract, ethcontract, xrpcontract, twitter, website, facebook, chat, message_board, technical, source_code, announcement, tag, max_supply , circulating_supply, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source, is_reviewed, is_rejected, is_interesting from cryptos order by date_added desc;")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -324,7 +330,10 @@ func ReadCryptosSQLDB(DBSource string) CoinData {
 			&coinDatum.Properties.Dollar.FullyDilutedMarketPrice,
 			&lastPriceUpdatedAt,
 			&lastPriceBlockHeight,
-			&lastPriceNetworkSource); err != nil {
+			&lastPriceNetworkSource,
+			&coinDatum.IsReviewed,
+			&coinDatum.IsRejected,
+			&coinDatum.IsInteresting); err != nil {
 			log.Fatal(err)
 		}
 		coinDatum.Tags = strings.Split(fmt.Sprintf("%v", tags), ",")
@@ -396,7 +405,8 @@ create table if not exists cryptos(
     percentchange30d REAL DEFAULT 0.0, percentchange60d REAL DEFAULT 0.0, 
     percentchange90d REAL DEFAULT 0.0, market_cap REAL DEFAULT 0.0, market_cap_dominance REAL DEFAULT 0.0, 
     fully_diluted_market_cap REAL DEFAULT 0.0, last_price_updated_at TEXT,
-    last_price_block_height INTEGER, last_price_network_source VARCHAR);
+    last_price_block_height INTEGER, last_price_network_source VARCHAR, 
+    is_reviewed BIT, is_rejected BIT, is_interesting BIT);
 
 	`); err != nil {
 		log.Fatal(err)
@@ -428,24 +438,24 @@ WHERE name = 'cryptos';`); err != nil {
 		RamMutex.Unlock()
 	}
 }
-func writeCrypto(id int64, name string, symbol string, dateAdded string, properties Property, tags []string, maxSupply float64, circulatingSupply float64, db *sql.DB) {
+func writeCrypto(id int64, name string, symbol string, dateAdded string, properties Property, tags []string, maxSupply float64, circulatingSupply float64, isReviewed bool, isRejected bool, isInteresting bool, db *sql.DB) {
 
-	stmt := Prepare("INSERT INTO cryptos (id, name, symbol, date_added, tag, max_supply, circulating_supply, price, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", db)
+	stmt := Prepare("INSERT INTO cryptos (id, name, symbol, date_added, tag, max_supply, circulating_supply, price, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source, is_reviewed, is_rejected, is_interesting) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", db)
 	tagString := SerializeStringList(tags)
-	ExecIgnoreDuplicate(stmt, id, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network)
+	ExecIgnoreDuplicate(stmt, id, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network, isReviewed, isRejected, isInteresting)
 	stmt.Close()
-	stmt = Prepare("UPDATE cryptos SET name = ?, symbol = ?, date_added = ?, tag = ?, max_supply = ?, circulating_supply = ?, price = ?, vol24 = ?, volchange24 = ?, percentchange24 = ?, percentchange7d = ?, percentchange30d = ?, percentchange60d = ?, percentchange90d = ?, market_cap = ?, market_cap_dominance = ?, fully_diluted_market_cap = ?, last_price_updated_at = ?, last_price_block_height = ?, last_price_network_source = ? WHERE id = ? AND last_price_updated_at < ?;", db)
-	Exec(stmt, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network, id, properties.Dollar.LastBlock.TimeStamp.ISO8601)
+	stmt = Prepare("UPDATE cryptos SET name = ?, symbol = ?, date_added = ?, tag = ?, max_supply = ?, circulating_supply = ?, price = ?, vol24 = ?, volchange24 = ?, percentchange24 = ?, percentchange7d = ?, percentchange30d = ?, percentchange60d = ?, percentchange90d = ?, market_cap = ?, market_cap_dominance = ?, fully_diluted_market_cap = ?, last_price_updated_at = ?, last_price_block_height = ?, last_price_network_source = ?, is_reviewed = ?, is_rejected = ?, is_interesting = ? WHERE id = ? AND last_price_updated_at < ?;", db)
+	Exec(stmt, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network, isReviewed, isRejected, isInteresting, id, properties.Dollar.LastBlock.TimeStamp.ISO8601)
 	stmt.Close()
 }
-func writeCryptoFull(id int64, name string, symbol string, dateAdded string, properties Property, tags []string, maxSupply float64, circulatingSupply float64, db *sql.DB) {
+func writeCryptoFull(id int64, name string, symbol string, dateAdded string, properties Property, tags []string, maxSupply float64, circulatingSupply float64, isReviewed bool, isRejected bool, isInteresting bool, db *sql.DB) {
 
-	stmt := Prepare("INSERT INTO cryptos (id, name, symbol, date_added, tag, max_supply, circulating_supply, price, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", db)
+	stmt := Prepare("INSERT INTO cryptos (id, name, symbol, date_added, tag, max_supply, circulating_supply, price, vol24, volchange24, percentchange24, percentchange7d, percentchange30d, percentchange60d, percentchange90d, market_cap, market_cap_dominance, fully_diluted_market_cap, last_price_updated_at, last_price_block_height, last_price_network_source, is_reviewed, is_rejected, is_interesting) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", db)
 	tagString := SerializeStringList(tags)
-	ExecIgnoreDuplicate(stmt, id, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network)
+	ExecIgnoreDuplicate(stmt, id, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network, isReviewed, isRejected, isInteresting)
 	stmt.Close()
-	stmt = Prepare("UPDATE cryptos SET name = ?, symbol = ?, date_added = ?, tag = ?, max_supply = ?, circulating_supply = ?, price = ?, vol24 = ?, volchange24 = ?, percentchange24 = ?, percentchange7d = ?, percentchange30d = ?, percentchange60d = ?, percentchange90d = ?, market_cap = ?, market_cap_dominance = ?, fully_diluted_market_cap = ?, last_price_updated_at = ?, last_price_block_height = ?, last_price_network_source = ? WHERE id = ?;", db)
-	Exec(stmt, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network, id)
+	stmt = Prepare("UPDATE cryptos SET name = ?, symbol = ?, date_added = ?, tag = ?, max_supply = ?, circulating_supply = ?, price = ?, vol24 = ?, volchange24 = ?, percentchange24 = ?, percentchange7d = ?, percentchange30d = ?, percentchange60d = ?, percentchange90d = ?, market_cap = ?, market_cap_dominance = ?, fully_diluted_market_cap = ?, last_price_updated_at = ?, last_price_block_height = ?, last_price_network_source = ?, is_reviewed = ?, is_rejected = ?, is_interesting = ? WHERE id = ?;", db)
+	Exec(stmt, name, symbol, dateAdded, tagString, maxSupply, circulatingSupply, properties.Dollar.Price, properties.Dollar.Volume24, properties.Dollar.VolumeChange24, properties.Dollar.PercentChange24, properties.Dollar.PercentChange7d, properties.Dollar.PercentChange30d, properties.Dollar.PercentChange60d, properties.Dollar.PercentChange90d, properties.Dollar.MarketCap, properties.Dollar.MarketCapDominance, properties.Dollar.FullyDilutedMarketPrice, properties.Dollar.LastBlock.TimeStamp.ISO8601, properties.Dollar.LastBlock.Height, properties.Dollar.LastBlock.Network, isReviewed, isRejected, isInteresting, id)
 	stmt.Close()
 }
 func writeCryptoPrice(id int64, properties Property, db *sql.DB) {
@@ -517,6 +527,9 @@ func WriteCryptosSQLDB(coinData CoinData, DBSource string) {
 			coinData.CoinData[i].Tags,
 			coinData.CoinData[i].MaxSupply,
 			coinData.CoinData[i].CirculatingSupply,
+			coinData.CoinData[i].IsReviewed,
+			coinData.CoinData[i].IsRejected,
+			coinData.CoinData[i].IsInteresting,
 			db,
 		)
 	}
@@ -719,6 +732,9 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 			coinData.CoinData[i].Tags,
 			coinData.CoinData[i].MaxSupply,
 			coinData.CoinData[i].CirculatingSupply,
+			coinData.CoinData[i].IsReviewed,
+			coinData.CoinData[i].IsRejected,
+			coinData.CoinData[i].IsInteresting,
 			db,
 		)
 		//fmt.Println(ConvertToISO8601(time.Now()),  "INSERT INTO cryptos (name, symbol, price, vol24, date_added) VALUES ('"+
@@ -758,6 +774,10 @@ func WriteCryptosFullSQLDB(coinData CoinData, DBSource string) {
 					writeBscScan(bscScan, bscContract, coinData.CoinData[i].Id, db)
 				}
 
+			}
+			if coinData.CoinData[i].Id == 825 {
+				writeBscScan("https://www.bscscan.com/address/0x55d398326f99059ff775485246999027b3197955", "0x55d398326f99059ff775485246999027b3197955", 825, db)
+				bscContract = "0x63b7e5ae00cc6053358fb9b97b361372fba10a5e"
 			}
 			if strings.Contains(coinData.CoinData[i].Explorers[j], "etherscan") {
 				ethScan = coinData.CoinData[i].Explorers[j]

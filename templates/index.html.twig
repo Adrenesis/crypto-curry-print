@@ -2,6 +2,7 @@
 
 {% block stylesheets %}
     <link href="http://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <!--    <script src="main.js"></script>-->
     <style>
         body{
@@ -80,6 +81,56 @@
         .wallet-button {
             display: block;
         }
+        .interesting-checkbox {
+            background: darkgreen;
+        }
+        .review-checkbox {
+            background: #2f8cab;
+        }
+        .reject-checkbox {
+            background: darkred;
+        }
+        .interesting-checkbox, .review-checkbox, .reject-checkbox{
+            display:inline-block;
+            padding:2px 5px;
+            border-radius:2px;
+            position:relative;
+            cursor:pointer;
+        }
+
+        .interesting-checkbox-element, .review-checkbox-element, .reject-checkbox-element{
+            display:block;
+            position:absolute;
+            left:0;
+            top:0;
+            width:100%;
+            height:100%;
+            z-index:1;
+            opacity:0;
+        }
+
+        .loading-interesting-checkbox-element, .loading-review-checkbox-element, .loading-reject-checkbox-element{
+            display:none;
+            position:absolute;
+            left:0;
+            top:5px;
+            width:100%;
+            height:100%;
+            z-index:2;
+            opacity:1;
+        }
+
+        .d-block-important {
+            display: block !important;
+        }
+
+        .interesting-checkbox>input[type='checkbox']+i, .review-checkbox>input[type='checkbox']+i, .reject-checkbox>input[type='checkbox']+i{
+            color:rgba(255,255,255,0.4);
+        }
+
+        .interesting-checkbox>input[type='checkbox']:checked+i, .review-checkbox>input[type='checkbox']:checked+i, .reject-checkbox>input[type='checkbox']:checked+i{
+            color:#fff;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -129,6 +180,9 @@
 
                 <th>#</th>
                 <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
                 <th>Name</th>
                 <th>Symbol</th>
                 <th>Price</th>
@@ -143,6 +197,117 @@
 
             <tr>
                 <td style="text-align: center">{{ i }}
+
+                </td>
+                <td style="text-align: center; margin: 0; padding: 0; width: 28px; height: 24px">
+                    <span class="review-checkbox">
+                        <input class="review-checkbox-element" type="checkbox" onclick="
+                            event.stopPropagation()
+                            event.path[1].querySelector('.loading-review-checkbox-element').classList.add('d-block-important')
+                            const xhttp = new XMLHttpRequest();
+                            xhttp.onload = function() {
+                                event.path[0].checked = !event.path[0].checked;
+
+                                if (this.status === 200) {
+                                try {
+                                    response = JSON.parse(this.responseText)
+                                    if ((response.coinDatum.isReviewed !== event.path[0].checked.toString()) && (response.status === 200))
+                                    {
+                                        event.path[0].checked = !event.path[0].checked;
+                                        console.log(response)
+
+                                    }
+                                } catch (e) {
+                                    console.log(this.responseText)
+                                    console.log(e.message)
+                                }
+                                    console.log('wtf')
+                                }
+                                event.path[1].querySelector('.loading-review-checkbox-element').classList.remove('d-block-important')
+
+                            }
+                            xhttp.open('GET', 'update/coin?id={{ coinDatum.Id }}&isReviewed=' + (event.path[0].checked).toString());
+                            xhttp.send();
+                        "
+                       {% if coinDatum.IsReviewed %}
+                           checked
+                       {% endif %}
+                        />
+                        <i class="fas fa-check" style="height: 5px"></i>
+                        <img class="loading-review-checkbox-element" src="/public/loading.gif"/>
+                    </span>
+                </td>
+                <td style="text-align: center; margin: 0; padding: 0; width: 28px; height: 24px">
+                    <span class="interesting-checkbox">
+                        <input class="interesting-checkbox-element" type="checkbox" onclick="
+                            event.stopPropagation()
+                            event.path[1].querySelector('.loading-interesting-checkbox-element').classList.add('d-block-important')
+                            const xhttp = new XMLHttpRequest();
+                            xhttp.onload = function() {
+                                event.path[0].checked = !event.path[0].checked;
+                                if (this.status === 200) {
+                                try {
+                                    response = JSON.parse(this.responseText)
+                                    if ((response.coinDatum.isInteresting !== event.path[0].checked.toString()) && (response.status === 200))
+                                    {
+                                        event.path[0].checked = !event.path[0].checked;
+                                        console.log(response)
+
+                                    }
+                                } catch (e) {
+                                    console.log(this.responseText)
+                                    console.log(e.message)
+                                }
+                                    console.log('wtf')
+                                }
+                                event.path[1].querySelector('.loading-interesting-checkbox-element').classList.remove('d-block-important')
+                            }
+                            xhttp.open('GET', 'update/coin?id={{ coinDatum.Id }}&isInteresting=' + (event.path[0].checked).toString());
+                            xhttp.send();
+                        "
+                               {% if coinDatum.IsInteresting %}
+                               checked
+                               {% endif %}
+                        />
+                        <i class="fas fa-eye" style="height: 5px"></i>
+                        <img class="loading-interesting-checkbox-element" src="/public/loading.gif"/>
+                    </span>
+                </td>
+                <td style="text-align: center; margin: 0; padding: 0; width: 28px; height: 24px">
+                    <span class="reject-checkbox">
+                        <input class="reject-checkbox-element" type="checkbox" onclick="
+                            event.stopPropagation()
+                            event.path[1].querySelector('.loading-reject-checkbox-element').classList.add('d-block-important')
+                            const xhttp = new XMLHttpRequest();
+                            xhttp.onload = function() {
+                                event.path[0].checked = !event.path[0].checked;
+                                if (this.status === 200) {
+                                try {
+                                    response = JSON.parse(this.responseText)
+                                    if ((response.coinDatum.isRejected !== event.path[0].checked.toString()) && (response.status === 200))
+                                    {
+                                        event.path[0].checked = !event.path[0].checked;
+                                        console.log(response)
+
+                                    }
+                                } catch (e) {
+                                    console.log(this.responseText)
+                                    console.log(e.message)
+                                }
+                                    console.log('wtf')
+                                }
+                                event.path[1].querySelector('.loading-reject-checkbox-element').classList.remove('d-block-important')
+                            }
+                            xhttp.open('GET', 'update/coin?id={{ coinDatum.Id }}&isRejected=' + (event.path[0].checked).toString());
+                            xhttp.send();
+                        "
+                               {% if coinDatum.IsRejected %}
+                               checked
+                               {% endif %}
+                        />
+                        <i class="fas fa-ban" style="height: 5px"></i>
+                        <img class="loading-reject-checkbox-element" src="/public/loading.gif"/>
+                    </span>
                 </td>
                 <td >
                     <a href="/links?id={{ coinDatum.Id }}" onclick="
@@ -209,7 +374,7 @@
 
                 <td style="text-align: end; right: 0">
                     <a  onclick="
-                        event.stopPropagation();
+                        e.stopPropagation();
                         w = window.open('https://coinmarketcap.com/currencies/{{ coinDatum.Slug }}','cmcWindow',`width=1520,height=1080,left=400,top=0,
                                     toolbar=no,
                                     location=no,

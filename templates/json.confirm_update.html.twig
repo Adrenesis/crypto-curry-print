@@ -1,0 +1,11 @@
+{
+    "status": {{ status }},
+    {% if status == 200 %}"coinDatum": {
+        "id" : {{ coinDatum.Id }},
+        "name" : "{{ coinDatum.Name }}",
+        "symbol" : "{{ coinDatum.Symbol }}",
+        "isReviewed": "{{ coinDatum.IsReviewed|sprintf }}",
+        "isInteresting": "{{ coinDatum.IsInteresting|sprintf }}",
+        "isRejected": "{{ coinDatum.IsRejected|sprintf }}"
+    }{% endif %}
+}

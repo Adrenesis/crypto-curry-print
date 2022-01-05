@@ -15,6 +15,12 @@ import (
 func main() {
 	var port int64
 	var errport error
+	path, errwd := os.Getwd()
+	if errwd != nil {
+		log.Println(errwd)
+	}
+	fmt.Println(path)
+
 	if len(os.Args) > 1 {
 		port, errport = strconv.ParseInt(os.Args[1], 10, 64)
 	} else {
@@ -27,6 +33,9 @@ func main() {
 	http.HandleFunc("/index", Controller.HandleIndex)
 	http.HandleFunc("/links", Controller.HandleLinks)
 	http.HandleFunc("/bscbalances", Controller.HandleBSCBalance)
+	http.HandleFunc("/update/coin", Controller.HandleCoinUpdate)
+	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
+
 	if errport != nil {
 		port = 8880
 	}

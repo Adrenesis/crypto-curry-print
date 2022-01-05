@@ -98,6 +98,9 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.Network = "cmc"
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.Height = -1
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				coinData1.CoinData[i].IsReviewed = false
+				coinData1.CoinData[i].IsRejected = false
+				coinData1.CoinData[i].IsInteresting = false
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 				var pricePoint Model.BSCPricePoint
 				pricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
@@ -126,6 +129,9 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.Network = "cmc"
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.Height = -1
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				coinData1.CoinData[i].IsReviewed = false
+				coinData1.CoinData[i].IsRejected = false
+				coinData1.CoinData[i].IsInteresting = false
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 				var pricePoint Model.BSCPricePoint
 				pricePoint.Price = coinData1.CoinData[i].Properties.Dollar.Price
@@ -140,6 +146,9 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.Network = "cmc"
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.Height = -1
 				coinData1.CoinData[i].Properties.Dollar.LastBlock.TimeStamp.ISO8601 = coinData1.Status.TimeStamp
+				coinData1.CoinData[i].IsReviewed = false
+				coinData1.CoinData[i].IsRejected = false
+				coinData1.CoinData[i].IsInteresting = false
 				coinData.CoinData = append(coinData.CoinData, coinData1.CoinData[i])
 				//if coinData1.CoinData[i].BscContract != "" {
 				var pricePoint Model.BSCPricePoint
